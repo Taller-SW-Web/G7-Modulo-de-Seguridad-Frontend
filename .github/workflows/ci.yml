@@ -1,0 +1,61 @@
+name: CI Frontend
+
+on:
+  pull_request:
+    branches: [develop, main]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  destino-pr:
+    name: Frontend - destino del PR
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Exigir develop como origen de los PR hacia main
+        env:
+          EVENTO: ${{ github.event_name }}
+          BASE: ${{ github.base_ref }}
+          HEAD: ${{ github.head_ref }}
+          REPO_HEAD: ${{ github.event.pull_request.head.repo.full_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ "$EVENTO" = "pull_request" ] && [ "$BASE" = "main" ]; then
+            if [ "$HEAD" != "develop" ] || [ "$REPO_HEAD" != "$REPO" ]; then
+              echo '::error::Los cambios llegan a main mediante un PR de develop de este repositorio.'
+              exit 1
+            fi
+          fi
+
+  build-test:
+    name: Frontend - build y pruebas
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Preparar Node (versión de .nvmrc)
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Instalar dependencias exactas del lockfile
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Pruebas (cuando la base compartida añada el script test)
+        run: npm test --if-present
+      - name: Build
+        run: npm run build
