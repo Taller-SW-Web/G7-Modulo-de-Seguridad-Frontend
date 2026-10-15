@@ -17,9 +17,14 @@ export interface ClienteHttp {
   request<T>(ruta: string, opciones?: OpcionesPeticion): Promise<T>
 }
 
-type Fetch = typeof fetch
+/** Lo único que el cliente usa de fetch: URL ya resuelta e init. */
+type Fetch = (url: string, init: RequestInit) => Promise<Response>
 
-export function crearClienteHttp(baseUrl: string, almacen: AlmacenSesion, fetchImpl: Fetch = fetch): ClienteHttp {
+export function crearClienteHttp(
+  baseUrl: string,
+  almacen: AlmacenSesion,
+  fetchImpl: Fetch = (url, init) => fetch(url, init),
+): ClienteHttp {
   const base = baseUrl.replace(/\/+$/, '')
   let renovacionEnVuelo: Promise<boolean> | null = null
 
