@@ -2,9 +2,12 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import type { Api } from './shared/api'
 import { Marco } from './shared/Marco'
-import { RutaAutenticada, RutaPublica } from './shared/rutas'
+import { PERMISO_VER_USUARIOS } from './shared/navegacion'
+import { RutaAdmin, RutaAutenticada, RutaPublica } from './shared/rutas'
 import { LoginPage } from './pantallas/login/LoginPage'
 import { MiCuentaBase } from './pantallas/mi-cuenta/MiCuentaBase'
+import { AdminListadoPage } from './pantallas/admin-listado/AdminListadoPage'
+import { AdminDetallePage } from './pantallas/admin-detalle/AdminDetallePage'
 
 export function Rutas({ api }: { api: Api }) {
   return (
@@ -25,6 +28,22 @@ export function Rutas({ api }: { api: Api }) {
         }
       >
         <Route path="/mi-cuenta" element={<MiCuentaBase />} />
+        <Route
+          path="/admin/usuarios"
+          element={
+            <RutaAdmin permiso={PERMISO_VER_USUARIOS}>
+              <AdminListadoPage api={api} />
+            </RutaAdmin>
+          }
+        />
+        <Route
+          path="/admin/usuarios/:id"
+          element={
+            <RutaAdmin permiso={PERMISO_VER_USUARIOS}>
+              <AdminDetallePage api={api} />
+            </RutaAdmin>
+          }
+        />
       </Route>
       <Route path="*" element={<Navigate to="/mi-cuenta" replace />} />
     </Routes>
