@@ -2,10 +2,11 @@
 import { AppShell, Button, Group, Text, ThemeIcon } from '@mantine/core'
 import { IconLogout, IconShieldLock } from '@tabler/icons-react'
 import { NavLink, Outlet, useNavigate } from 'react-router'
+import { PERMISO_VER_USUARIOS } from './navegacion'
 import { useSesion } from './sesion'
 
 export function Marco() {
-  const { estado, cerrarSesion } = useSesion()
+  const { estado, tienePermiso, cerrarSesion } = useSesion()
   const navegar = useNavigate()
   const nombre = estado.tipo === 'activa' ? estado.usuario.nombreCompleto : ''
 
@@ -29,6 +30,11 @@ export function Marco() {
               <Button component={NavLink} to="/mi-cuenta" variant="subtle" color="cloud" size="compact-sm">
                 Mi cuenta
               </Button>
+              {tienePermiso(PERMISO_VER_USUARIOS) && (
+                <Button component={NavLink} to="/admin/usuarios" variant="subtle" color="cloud" size="compact-sm">
+                  Usuarios
+                </Button>
+              )}
             </Group>
           </Group>
           <Group gap="sm" wrap="nowrap">
