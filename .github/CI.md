@@ -12,17 +12,16 @@ check de destino impide aprobar con CI un PR de tarea dirigido a `main`.
 | `Frontend - destino del PR` | Rechaza un PR a `main` que no venga de `develop` |
 | `Frontend - build y pruebas` | Node de `.nvmrc` (22), `npm ci` con el lockfile, `lint`, `typecheck`, `test` (cuando exista) y `build` |
 
-No usa secretos. `npm test --if-present` se activa solo cuando la base
-compartida (EP-02-T001, Jose Luis) añada Vitest y el script `test`; desde ese
-momento las pruebas son obligatorias. No se excluyen pruebas ni reglas de lint
+No usa secretos. `npm test` (Vitest) es obligatorio desde la base compartida
+(EP-02-T001). No se excluyen pruebas ni reglas de lint
 para que el CI quede verde.
 
 ## Protección de ramas (activa)
 
 `main` y `develop` tienen las mismas reglas que el backend:
 
-- PR obligatorio con **una aprobación**; nadie aprueba su propio PR.
-- Una aprobación se invalida si llegan commits nuevos, y debe cubrir el último push.
+- PR obligatorio. Desde el 15-oct-2026 no se exigen aprobaciones (un solo
+  desarrollador activo); el CI en verde es la condición de merge.
 - Checks obligatorios: los dos de la tabla, con la rama al día con su base.
 - Conversaciones resueltas antes del merge.
 - Se aplica también a administradores.

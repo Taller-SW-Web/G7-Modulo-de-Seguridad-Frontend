@@ -56,6 +56,6 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
       - name: Pruebas (cuando la base compartida añada el script test)
-        run: npm test --if-present
+        run: npm test
       - name: Build
         run: npm run build
