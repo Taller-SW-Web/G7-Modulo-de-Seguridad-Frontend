@@ -1,35 +1,40 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+// Rutas H3 (ENTORNO-Y-REACT §3) con React Router 7 en modo declarativo.
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
+import type { Api } from './shared/api'
+import { Marco } from './shared/Marco'
+import { RutaAutenticada, RutaPublica } from './shared/rutas'
+import { LoginPage } from './pantallas/login/LoginPage'
+import { MiCuentaBase } from './pantallas/mi-cuenta/MiCuentaBase'
 
-function App() {
-  const [count, setCount] = useState(0)
-
+export function Rutas({ api }: { api: Api }) {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <Routes>
+      <Route
+        path="/login"
+        element={
+          <RutaPublica>
+            <LoginPage api={api} />
+          </RutaPublica>
+        }
+      />
+      <Route
+        element={
+          <RutaAutenticada>
+            <Marco />
+          </RutaAutenticada>
+        }
+      >
+        <Route path="/mi-cuenta" element={<MiCuentaBase />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/mi-cuenta" replace />} />
+    </Routes>
   )
 }
 
-export default App
+export default function App({ api }: { api: Api }) {
+  return (
+    <BrowserRouter>
+      <Rutas api={api} />
+    </BrowserRouter>
+  )
+}
