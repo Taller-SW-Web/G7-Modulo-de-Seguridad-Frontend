@@ -35,6 +35,11 @@ Las versiones están fijadas sin rangos y con `package-lock.json`: instalar con
 
 ## Configuración
 
+Para la demo local o un túnel, compilar con `VITE_API_BASE_URL=/api/v1` (en Git Bash anteponer
+`MSYS_NO_PATHCONV=1`) y servir con `npx vite preview`: el proxy reenvía `/api` a
+`G7_BACKEND_URL` (por defecto `http://localhost:8080`) y `G7_HOSTS_PERMITIDOS` admite el host
+público del túnel. Así front y API comparten origen y no hace falta CORS.
+
 `VITE_API_BASE_URL` es la única variable pública prevista. Nada secreto lleva
 prefijo `VITE_`: ni `client_secret`, ni claves de Supabase, ni tokens. Los
 `.env` locales no se suben (ver `.gitignore`).
