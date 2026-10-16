@@ -114,3 +114,22 @@ export interface PoliticaPassword {
 export function esDesafioMfa(respuesta: SesionIniciada | DesafioMfa): respuesta is DesafioMfa {
   return (respuesta as DesafioMfa).mfaRequerido === true
 }
+
+export interface RegistroActividad {
+  id: string
+  fecha: string
+  accion: string
+  resultado: 'EXITO' | 'FALLO'
+  actorTipo: 'USUARIO' | 'MODULO' | 'SISTEMA'
+  actorId?: string | null
+  objetivoUsuarioId?: string | null
+  ip?: string | null
+  agente?: string | null
+}
+
+export interface PaginaActividad {
+  registros: RegistroActividad[]
+  pagina: number
+  tamano: number
+  total: number
+}

@@ -8,6 +8,8 @@ import { LoginPage } from './pantallas/login/LoginPage'
 import { OtpPage } from './pantallas/otp/OtpPage'
 import { DesbloqueoPage } from './pantallas/desbloqueo/DesbloqueoPage'
 import { MiCuentaPage } from './pantallas/mi-cuenta/MiCuentaPage'
+import { CambiarContrasenaPage } from './pantallas/cambio-contrasena/CambiarContrasenaPage'
+import { ActividadPage } from './pantallas/actividad/ActividadPage'
 import { AdminListadoPage } from './pantallas/admin-listado/AdminListadoPage'
 import { AdminDetallePage } from './pantallas/admin-detalle/AdminDetallePage'
 
@@ -39,6 +41,8 @@ export function Rutas({ api }: { api: Api }) {
         }
       >
         <Route path="/mi-cuenta" element={<MiCuentaPage api={api} />} />
+        <Route path="/mi-cuenta/contrasena" element={<CambiarContrasenaPage api={api} />} />
+        <Route path="/mi-cuenta/actividad" element={<ActividadPage api={api} />} />
         <Route
           path="/admin/usuarios"
           element={
