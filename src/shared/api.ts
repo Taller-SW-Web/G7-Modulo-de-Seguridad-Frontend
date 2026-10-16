@@ -55,6 +55,8 @@ export function crearApi(cliente: ClienteHttp) {
       cliente.request<void>('/password/cambiar', { method: 'POST', body: { contrasenaActual, nuevaContrasena } }),
     actividadPropia: (pagina: number, signal?: AbortSignal) =>
       cliente.request<PaginaActividad>(`/auth/me/actividad?pagina=${pagina}&tamano=20`, { signal }),
+    actualizarPerfilPropio: (id: string, cambios: { nombres?: string; apellidos?: string; celular?: string }) =>
+      cliente.request<Usuario>(`/usuarios/${encodeURIComponent(id)}/atributos`, { method: 'PATCH', body: cambios }),
     perfilPropio: (signal?: AbortSignal) => cliente.request<Usuario>('/auth/me', { signal }),
     politicaPassword: (signal?: AbortSignal) =>
       cliente.request<PoliticaPassword>('/password/politica', { autenticada: false, signal }),
