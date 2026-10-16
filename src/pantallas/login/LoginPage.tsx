@@ -7,6 +7,7 @@ import type { Api } from '../../shared/api'
 import { destinoPorDefecto, volverSeguro } from '../../shared/navegacion'
 import { useSesion } from '../../shared/sesion'
 import { leerClaims } from '../../shared/jwt'
+import { guardarDesafio } from '../../shared/desafio'
 import { useLogin, validarCampos } from './useLogin'
 
 const AVISOS_LLEGADA = {
@@ -18,7 +19,8 @@ const AVISOS_LLEGADA = {
 export function LoginPage({ api }: { api: Api }) {
   const { estado, aceptarSesion } = useSesion()
   const navegar = useNavigate()
-  const { search } = useLocation()
+  const { search, state } = useLocation()
+  const avisoRecibido = (state as { aviso?: string } | null)?.aviso || null
   const { enviando, iniciar } = useLogin(api)
   const [correo, setCorreo] = useState('')
   const [contrasena, setContrasena] = useState('')
@@ -26,7 +28,8 @@ export function LoginPage({ api }: { api: Api }) {
   const [error, setError] = useState<string | null>(null)
   const [aviso, setAviso] = useState<string | null>(null)
   const refContrasena = useRef<HTMLInputElement>(null)
-  const llegada = estado.tipo === 'sin-sesion' && estado.motivo ? AVISOS_LLEGADA[estado.motivo] : null
+  const llegada =
+    avisoRecibido ?? (estado.tipo === 'sin-sesion' && estado.motivo ? AVISOS_LLEGADA[estado.motivo] : null)
 
   async function enviar(evento: FormEvent) {
     evento.preventDefault()
@@ -45,8 +48,9 @@ export function LoginPage({ api }: { api: Api }) {
         return
       }
       case 'mfa':
-        // FRONT-04 (Luis) recibirá el desafío en memoria; en este incremento aún no está publicada.
-        setAviso('Tu cuenta tiene segundo factor activo. Esa verificación todavía no está disponible en esta versión.')
+        // FRONT-04: el desafío pasa en memoria, nunca en la URL.
+        guardarDesafio(resultado.desafio)
+        navegar(`/otp${search}`)
         return
       case 'caducada':
         setAviso('Tu contraseña caducó.')

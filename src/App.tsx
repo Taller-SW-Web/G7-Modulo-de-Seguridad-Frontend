@@ -5,6 +5,7 @@ import { Marco } from './shared/Marco'
 import { PERMISO_VER_USUARIOS } from './shared/navegacion'
 import { RutaAdmin, RutaAutenticada, RutaPublica } from './shared/rutas'
 import { LoginPage } from './pantallas/login/LoginPage'
+import { OtpPage } from './pantallas/otp/OtpPage'
 import { MiCuentaBase } from './pantallas/mi-cuenta/MiCuentaBase'
 import { AdminListadoPage } from './pantallas/admin-listado/AdminListadoPage'
 import { AdminDetallePage } from './pantallas/admin-detalle/AdminDetallePage'
@@ -17,6 +18,14 @@ export function Rutas({ api }: { api: Api }) {
         element={
           <RutaPublica>
             <LoginPage api={api} />
+          </RutaPublica>
+        }
+      />
+      <Route
+        path="/otp"
+        element={
+          <RutaPublica>
+            <OtpPage api={api} />
           </RutaPublica>
         }
       />

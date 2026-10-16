@@ -5,6 +5,7 @@ import type {
   CodigoRol,
   DesafioMfa,
   EstadoCuenta,
+  OtpEnviado,
   PaginaUsuarios,
   PoliticaPassword,
   SesionIniciada,
@@ -35,6 +36,18 @@ export function crearApi(cliente: ClienteHttp) {
       }),
     logout: (refreshToken: string) =>
       cliente.request<void>('/auth/logout', { method: 'POST', body: { refreshToken }, autenticada: false }),
+    otpSolicitar: (challengeToken: string) =>
+      cliente.request<OtpEnviado>('/auth/otp/solicitar', {
+        method: 'POST',
+        body: { challengeToken, canal: 'EMAIL' },
+        autenticada: false,
+      }),
+    otpVerificar: (challengeToken: string, codigo: string) =>
+      cliente.request<SesionIniciada>('/auth/otp/verificar', {
+        method: 'POST',
+        body: { challengeToken, codigo },
+        autenticada: false,
+      }),
     politicaPassword: (signal?: AbortSignal) =>
       cliente.request<PoliticaPassword>('/password/politica', { autenticada: false, signal }),
     listarUsuarios: (filtros: FiltrosUsuarios, signal?: AbortSignal) => {

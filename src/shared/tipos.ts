@@ -60,6 +60,15 @@ export interface DesafioMfa {
   canal?: 'EMAIL' | 'SMS'
 }
 
+export interface OtpEnviado {
+  canal: 'EMAIL' | 'SMS'
+  destinoEnmascarado: string
+  /** Segundos de validez del código. */
+  expiraEn: number
+  /** Segundos restantes del desafío; el reenvío no lo prorroga. */
+  desafioExpiraEn?: number
+}
+
 export interface Bloqueo {
   tipo: 'AUTOMATICO' | 'MANUAL'
   hasta: string | null
