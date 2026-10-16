@@ -6,7 +6,7 @@ import { PERMISO_VER_USUARIOS } from './shared/navegacion'
 import { RutaAdmin, RutaAutenticada, RutaPublica } from './shared/rutas'
 import { LoginPage } from './pantallas/login/LoginPage'
 import { OtpPage } from './pantallas/otp/OtpPage'
-import { MiCuentaBase } from './pantallas/mi-cuenta/MiCuentaBase'
+import { MiCuentaPage } from './pantallas/mi-cuenta/MiCuentaPage'
 import { AdminListadoPage } from './pantallas/admin-listado/AdminListadoPage'
 import { AdminDetallePage } from './pantallas/admin-detalle/AdminDetallePage'
 
@@ -36,7 +36,7 @@ export function Rutas({ api }: { api: Api }) {
           </RutaAutenticada>
         }
       >
-        <Route path="/mi-cuenta" element={<MiCuentaBase />} />
+        <Route path="/mi-cuenta" element={<MiCuentaPage api={api} />} />
         <Route
           path="/admin/usuarios"
           element={
