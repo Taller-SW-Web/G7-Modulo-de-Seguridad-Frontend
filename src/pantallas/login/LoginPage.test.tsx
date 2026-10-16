@@ -55,11 +55,13 @@ describe('FRONT-01 inicio de sesión', () => {
     expect(await screen.findByRole('heading', { name: 'Mi cuenta' })).toBeTruthy()
   })
 
-  it('desafío MFA: no crea sesión ni pone el challengeToken en la URL', async () => {
+  it('desafío MFA: va a la pantalla OTP sin crear sesión ni poner el challengeToken en la URL', async () => {
     const login = vi.fn().mockResolvedValue({ mfaRequerido: true, challengeToken: 'desafio-secreto', expiraEn: 300 })
-    const { almacen } = renderizar({ login }, '/login')
+    const otpSolicitar = vi.fn().mockReturnValue(new Promise(() => {}))
+    const { almacen } = renderizar({ login, otpSolicitar }, '/login')
     await llenar('ana@g7.test', 'Secreta-123!')
-    expect(await screen.findByRole('status')).toBeTruthy()
+    expect(await screen.findByText('Enviando tu código…')).toBeTruthy()
+    expect(otpSolicitar).toHaveBeenCalledWith('desafio-secreto')
     expect(almacen.estado().tipo).toBe('sin-sesion')
     expect(window.location.href).not.toContain('desafio-secreto')
   })
