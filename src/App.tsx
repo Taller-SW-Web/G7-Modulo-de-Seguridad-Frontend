@@ -6,6 +6,7 @@ import { PERMISO_VER_USUARIOS } from './shared/navegacion'
 import { RutaAdmin, RutaAutenticada, RutaPublica } from './shared/rutas'
 import { LoginPage } from './pantallas/login/LoginPage'
 import { OtpPage } from './pantallas/otp/OtpPage'
+import { DesbloqueoPage } from './pantallas/desbloqueo/DesbloqueoPage'
 import { MiCuentaPage } from './pantallas/mi-cuenta/MiCuentaPage'
 import { AdminListadoPage } from './pantallas/admin-listado/AdminListadoPage'
 import { AdminDetallePage } from './pantallas/admin-detalle/AdminDetallePage'
@@ -21,6 +22,7 @@ export function Rutas({ api }: { api: Api }) {
           </RutaPublica>
         }
       />
+      <Route path="/desbloquear" element={<DesbloqueoPage api={api} />} />
       <Route
         path="/otp"
         element={
