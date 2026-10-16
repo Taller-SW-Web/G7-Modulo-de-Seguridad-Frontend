@@ -6,6 +6,7 @@ import type { Api } from '../../shared/api'
 import { mensajeDeError } from '../../shared/errores'
 import { ETIQUETA_ROL } from '../../shared/etiquetas'
 import type { Usuario } from '../../shared/tipos'
+import { EdicionPerfil } from './EdicionPerfil'
 
 type Carga = { tipo: 'cargando' } | { tipo: 'listo'; perfil: Usuario } | { tipo: 'error'; error: unknown }
 
@@ -28,6 +29,7 @@ function Dato({ etiqueta, valor, nota }: { etiqueta: string; valor?: string | nu
 export function MiCuentaPage({ api }: { api: Api }) {
   const [carga, setCarga] = useState<Carga>({ tipo: 'cargando' })
   const [intento, setIntento] = useState(0)
+  const [editando, setEditando] = useState(false)
   const reintentar = useCallback(() => setIntento((n) => n + 1), [])
 
   useEffect(() => {
@@ -86,6 +88,17 @@ export function MiCuentaPage({ api }: { api: Api }) {
                   ))}
                 </Group>
               </Group>
+              {editando ? (
+                <EdicionPerfil
+                  api={api}
+                  perfil={carga.perfil}
+                  onCancelar={() => setEditando(false)}
+                  onGuardado={(perfil) => {
+                    setCarga({ tipo: 'listo', perfil })
+                    setEditando(false)
+                  }}
+                />
+              ) : (
               <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
                 <Dato etiqueta="Nombres" valor={carga.perfil.nombres} />
                 <Dato etiqueta="Apellidos" valor={carga.perfil.apellidos} />
@@ -101,6 +114,14 @@ export function MiCuentaPage({ api }: { api: Api }) {
                 />
                 <Dato etiqueta="Segundo factor" valor={carga.perfil.mfaHabilitado ? 'Activo' : 'Inactivo'} />
               </SimpleGrid>
+              )}
+              {!editando && (
+                <Group justify="flex-end">
+                  <Button variant="light" size="xs" onClick={() => setEditando(true)}>
+                    Editar mis datos
+                  </Button>
+                </Group>
+              )}
             </Stack>
           </Paper>
         )}
