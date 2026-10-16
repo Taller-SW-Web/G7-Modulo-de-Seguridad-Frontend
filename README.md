@@ -26,6 +26,7 @@ npm run dev        # servidor de desarrollo
 npm run typecheck  # tsc -b
 npm run lint
 npm run build      # typecheck + bundle en dist/
+npm test           # Vitest + Testing Library (jsdom)
 npm run preview
 ```
 
@@ -34,9 +35,26 @@ Las versiones están fijadas sin rangos y con `package-lock.json`: instalar con
 
 ## Configuración
 
+Para la demo local o un túnel, compilar con `VITE_API_BASE_URL=/api/v1` (en Git Bash anteponer
+`MSYS_NO_PATHCONV=1`) y servir con `npx vite preview`: el proxy reenvía `/api` a
+`G7_BACKEND_URL` (por defecto `http://localhost:8080`) y `G7_HOSTS_PERMITIDOS` admite el host
+público del túnel. Así front y API comparten origen y no hace falta CORS.
+
 `VITE_API_BASE_URL` es la única variable pública prevista. Nada secreto lleva
 prefijo `VITE_`: ni `client_secret`, ni claves de Supabase, ni tokens. Los
 `.env` locales no se suben (ver `.gitignore`).
 
-Estado: scaffold de Vite. La base compartida y las pantallas H3 siguen
-pendientes en los tableros de cada dueño.
+## Base compartida (EP-02-T001/T008)
+
+| Pieza | Archivo | Uso |
+|---|---|---|
+| Tema Mantine 9.6.2 del sistema de diseño | `src/shared/tema.ts` | `MantineProvider` en `main.tsx` |
+| Tipos del contrato | `src/shared/tipos.ts` | `Usuario`, `SesionIniciada`, `Problem`… |
+| Cliente HTTP único | `src/shared/http.ts`, `src/shared/api.ts` | `api.<operación>()`; Bearer, ProblemDetail, `Retry-After`, una renovación en vuelo y una sola repetición ante `TOKEN_INVALIDO` |
+| Errores transversales | `src/shared/errores.ts` | `mensajeDeError`, `erroresPorCampo` (FRONT-00 §2) |
+| Sesión en memoria | `src/shared/almacenSesion.ts`, `src/shared/sesion.tsx` | `useSesion()`: `estado`, `tienePermiso`, `aceptarSesion`, `cerrarSesion` |
+| Guards y destino | `src/shared/rutas.tsx`, `src/shared/navegacion.ts` | `RutaPublica`, `RutaAutenticada`, `RutaAdmin`, `volverSeguro` |
+| Marco con navegación | `src/shared/Marco.tsx` | encabezado y cierre de sesión |
+
+Cada dueño añade su pantalla en `src/pantallas/<pantalla>/` y su ruta en `src/App.tsx`.
+`/mi-cuenta` muestra por ahora los datos de la sesión; FRONT-06 (Valery) lo reemplaza.
