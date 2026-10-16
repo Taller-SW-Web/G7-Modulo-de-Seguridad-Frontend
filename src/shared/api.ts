@@ -6,6 +6,7 @@ import type {
   DesafioMfa,
   EstadoCuenta,
   OtpEnviado,
+  PaginaActividad,
   PaginaUsuarios,
   PoliticaPassword,
   SesionIniciada,
@@ -50,6 +51,10 @@ export function crearApi(cliente: ClienteHttp) {
       }),
     desbloquear: (token: string) =>
       cliente.request<void>('/auth/desbloquear', { method: 'POST', body: { token }, autenticada: false }),
+    cambiarContrasena: (contrasenaActual: string, nuevaContrasena: string) =>
+      cliente.request<void>('/password/cambiar', { method: 'POST', body: { contrasenaActual, nuevaContrasena } }),
+    actividadPropia: (pagina: number, signal?: AbortSignal) =>
+      cliente.request<PaginaActividad>(`/auth/me/actividad?pagina=${pagina}&tamano=20`, { signal }),
     perfilPropio: (signal?: AbortSignal) => cliente.request<Usuario>('/auth/me', { signal }),
     politicaPassword: (signal?: AbortSignal) =>
       cliente.request<PoliticaPassword>('/password/politica', { autenticada: false, signal }),

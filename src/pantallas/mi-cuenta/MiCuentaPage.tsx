@@ -1,6 +1,7 @@
 // FRONT-06 (lectura, EP-08-T005): perfil propio desde GET /auth/me, nunca desde el token.
 import { Alert, Badge, Button, Container, Group, Paper, SimpleGrid, Skeleton, Stack, Text, Title } from '@mantine/core'
 import { useCallback, useEffect, useState } from 'react'
+import { Link } from 'react-router'
 import type { Api } from '../../shared/api'
 import { mensajeDeError } from '../../shared/errores'
 import { ETIQUETA_ROL } from '../../shared/etiquetas'
@@ -43,9 +44,19 @@ export function MiCuentaPage({ api }: { api: Api }) {
   return (
     <Container size="sm" py="lg">
       <Stack gap="md">
-        <Title order={1} size="h2">
-          Mi cuenta
-        </Title>
+        <Group justify="space-between">
+          <Title order={1} size="h2">
+            Mi cuenta
+          </Title>
+          <Group gap="xs">
+            <Button component={Link} to="/mi-cuenta/contrasena" variant="light" size="xs">
+              Cambiar contraseña
+            </Button>
+            <Button component={Link} to="/mi-cuenta/actividad" variant="light" size="xs">
+              Ver actividad
+            </Button>
+          </Group>
+        </Group>
         {carga.tipo === 'cargando' && <Skeleton h={180} aria-label="Cargando tu perfil" />}
         {carga.tipo === 'error' && (
           <Alert color="red" role="alert">
