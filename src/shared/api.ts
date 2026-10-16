@@ -48,6 +48,7 @@ export function crearApi(cliente: ClienteHttp) {
         body: { challengeToken, codigo },
         autenticada: false,
       }),
+    perfilPropio: (signal?: AbortSignal) => cliente.request<Usuario>('/auth/me', { signal }),
     politicaPassword: (signal?: AbortSignal) =>
       cliente.request<PoliticaPassword>('/password/politica', { autenticada: false, signal }),
     listarUsuarios: (filtros: FiltrosUsuarios, signal?: AbortSignal) => {

@@ -3,7 +3,16 @@ import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { crearAlmacenSesion } from '../../shared/almacenSesion'
 import { ApiError } from '../../shared/errores'
+import type { Usuario } from '../../shared/tipos'
 import { renderizar, sesionDe } from '../../test/renderizar'
+
+const perfilPropio = (): Promise<Usuario> => Promise.resolve({
+  id: '00000000-0000-4000-8000-00000000f00a',
+  nombreCompleto: 'Ana Prueba',
+  correo: 'ana@g7.test',
+  estado: 'ACTIVO',
+  roles: ['CLIENTE'],
+})
 
 async function llenar(correo: string, contrasena: string) {
   const usuario = userEvent.setup()
@@ -42,15 +51,15 @@ describe('FRONT-01 inicio de sesión', () => {
 
   it('cliente sin permisos llega a Mi cuenta', async () => {
     const login = vi.fn().mockResolvedValue(sesionDe([]))
-    renderizar({ login }, '/login')
+    renderizar({ login, perfilPropio }, '/login')
     await llenar('ana@g7.test', 'Secreta-123!')
     expect(await screen.findByRole('heading', { name: 'Mi cuenta' })).toBeTruthy()
-    expect(screen.getByText('ana@g7.test')).toBeTruthy()
+    expect((await screen.findAllByText('ana@g7.test')).length).toBeGreaterThan(0)
   })
 
   it('respeta volver interno y descarta uno externo', async () => {
     const login = vi.fn().mockResolvedValue(sesionDe([]))
-    renderizar({ login }, '/login?volver=%2F%2Fevil.test')
+    renderizar({ login, perfilPropio }, '/login?volver=%2F%2Fevil.test')
     await llenar('ana@g7.test', 'Secreta-123!')
     expect(await screen.findByRole('heading', { name: 'Mi cuenta' })).toBeTruthy()
   })
@@ -75,7 +84,7 @@ describe('FRONT-01 inicio de sesión', () => {
     const almacen = crearAlmacenSesion()
     almacen.aceptar(sesionDe([]))
     const logout = vi.fn().mockRejectedValue(new TypeError('sin red'))
-    renderizar({ logout }, '/mi-cuenta', almacen)
+    renderizar({ logout, perfilPropio }, '/mi-cuenta', almacen)
     await userEvent.setup().click(await screen.findByRole('button', { name: /cerrar sesión/i }))
     expect(await screen.findByText('Cerraste sesión.')).toBeTruthy()
     expect(logout).toHaveBeenCalledWith('refresh-1')
