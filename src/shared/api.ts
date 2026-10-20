@@ -32,15 +32,15 @@ export function crearApi(cliente: ClienteHttp) {
   return {
     mfaSolicitar: (accion: 'HABILITAR' | 'DESHABILITAR') =>
       cliente.request<CambioMfaEnviado>('/auth/mfa/cambios', {
-        method: 'POST', version: 'v2', renovarAnteTokenInvalido: false, body: { accion },
+        method: 'POST', version: 'v2', body: { accion },
       }),
     mfaReenviar: (mfaChangeToken: string) =>
       cliente.request<CambioMfaEnviado>('/auth/mfa/cambios/reenviar', {
-        method: 'POST', version: 'v2', renovarAnteTokenInvalido: false, body: { mfaChangeToken },
+        method: 'POST', version: 'v2', renovarAntesDeEnviar: true, renovarAnteTokenInvalido: false, body: { mfaChangeToken },
       }),
     mfaConfirmar: (mfaChangeToken: string, codigo: string) =>
       cliente.request<void>('/auth/mfa/cambios/confirmar', {
-        method: 'POST', version: 'v2', renovarAnteTokenInvalido: false, body: { mfaChangeToken, codigo },
+        method: 'POST', version: 'v2', renovarAntesDeEnviar: true, renovarAnteTokenInvalido: false, body: { mfaChangeToken, codigo },
       }),
     login: (correo: string, contrasena: string) =>
       cliente.request<SesionIniciada | DesafioMfa>('/auth/login', {

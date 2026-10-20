@@ -51,7 +51,7 @@ export function SegundoFactorPage({ api }: { api: Api }) {
 
   function limpiar() {
     generacion.current++
-    setOperacion(null); setConsentir(false); setCodigo(''); setAgotado(false)
+    setOperacion(null); setConsentir(false); setCodigo(''); setAgotado(false); setError('')
   }
 
   useEffect(() => {
@@ -122,7 +122,9 @@ export function SegundoFactorPage({ api }: { api: Api }) {
             {(!perfil || incierta) && <Button variant="light" disabled={ocupada} onClick={() => void cargar()}>Consultar estado</Button>}
           </Stack>
         </Paper>
-        <Modal opened={consentir || operacion !== null} onClose={limpiar} title={consentir ? 'Desactivar segundo factor' : 'Confirma el cambio'}>
+        <Modal opened={consentir || operacion !== null} onClose={() => { if (!enVuelo.current) limpiar() }}
+          closeOnClickOutside={!ocupada} closeOnEscape={!ocupada} closeButtonProps={{ disabled: ocupada }}
+          title={consentir ? 'Desactivar segundo factor' : 'Confirma el cambio'}>
           <Stack>
             {error && <Alert color="red" role="alert">{error}</Alert>}
             {consentir ? <>
@@ -140,7 +142,7 @@ export function SegundoFactorPage({ api }: { api: Api }) {
               <Button variant="light" disabled={ocupada || !cambioVigente || ahora < reenvioEn} onClick={() => void ejecutar('reenviar')}>Reenviar código</Button>
             </>}
             {ahora < reenvioEn && <Text role="status">Espera {Math.ceil((reenvioEn - ahora) / 1000)} s antes de pedir otro código.</Text>}
-            <Button variant="subtle" onClick={limpiar}>Cancelar</Button>
+            <Button variant="subtle" disabled={ocupada} onClick={limpiar}>Cancelar</Button>
           </Stack>
         </Modal>
       </Stack>

@@ -21,7 +21,7 @@ async function codigo() {
 function deshabilitado(nombre: string) { return (screen.getByRole('button', { name: nombre }) as HTMLButtonElement).disabled }
 
 describe('FRONT-09 configuración MFA', () => {
-  it('confirma activación y relee perfil sin cambiar el estado al recibir 202', async () => {
+  it('aplica el estado solo tras confirmar con 204 y releer perfil', async () => {
     const perfilPropio = vi.fn().mockResolvedValueOnce(perfil).mockResolvedValue({ ...perfil, mfaHabilitado: true })
     const mfaSolicitar = vi.fn().mockResolvedValue(enviado)
     const mfaConfirmar = vi.fn().mockResolvedValue(undefined)
@@ -88,11 +88,42 @@ describe('FRONT-09 configuración MFA', () => {
     expect(window.location.href).not.toContain('cambio-test')
   })
   it('token de cambio inválido termina la sesión sin repetir', async () => {
-    const mfaSolicitar = vi.fn().mockRejectedValue(new ApiError(401, { code: 'TOKEN_INVALIDO' }, null))
-    const { almacen } = montar({ mfaSolicitar })
+    const mfaConfirmar = vi.fn().mockRejectedValue(new ApiError(401, { code: 'TOKEN_INVALIDO' }, null))
+    const { almacen } = montar({ mfaSolicitar: vi.fn().mockResolvedValue(enviado), mfaConfirmar })
     await userEvent.click(await screen.findByRole('button', { name: 'Activar' }))
+    await screen.findByText(/Enviamos el código/); await codigo()
+    await userEvent.click(screen.getByRole('button', { name: 'Confirmar' }))
     await waitFor(() => expect(almacen.estado().tipo).not.toBe('activa'))
-    expect(mfaSolicitar).toHaveBeenCalledTimes(1)
+    expect(mfaConfirmar).toHaveBeenCalledTimes(1)
+  })
+  it('confirmación en vuelo bloquea Cancelar, X y Escape hasta releer el perfil', async () => {
+    let resolver!: () => void
+    const mfaConfirmar = vi.fn().mockImplementation(() => new Promise<void>((r) => { resolver = r }))
+    const perfilPropio = vi.fn().mockResolvedValueOnce(perfil).mockResolvedValue({ ...perfil, mfaHabilitado: true })
+    montar({ perfilPropio, mfaSolicitar: vi.fn().mockResolvedValue(enviado), mfaConfirmar })
+    await userEvent.click(await screen.findByRole('button', { name: 'Activar' }))
+    await screen.findByText(/Enviamos el código/); await codigo()
+    await userEvent.click(screen.getByRole('button', { name: 'Confirmar' }))
+    expect(deshabilitado('Cancelar')).toBe(true)
+    const cerrar = document.querySelector('button.mantine-Modal-close') as HTMLButtonElement
+    expect(cerrar.disabled).toBe(true)
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    await userEvent.click(cerrar); await userEvent.keyboard('{Escape}')
+    expect(screen.getByRole('dialog')).toBeTruthy()
+    await act(async () => resolver())
+    expect(await screen.findByText('Segundo factor activo.')).toBeTruthy()
+    expect(perfilPropio).toHaveBeenCalledTimes(2)
+  })
+  it('cancelar limpia el error del modal sin dejar alerta en la pantalla', async () => {
+    montar({ mfaSolicitar: vi.fn().mockResolvedValue(enviado),
+      mfaConfirmar: vi.fn().mockRejectedValue(new ApiError(401, { code: 'CODIGO_INVALIDO' }, null)) })
+    await userEvent.click(await screen.findByRole('button', { name: 'Activar' }))
+    await screen.findByText(/Enviamos el código/); await codigo()
+    await userEvent.click(screen.getByRole('button', { name: 'Confirmar' }))
+    await screen.findByRole('alert')
+    await userEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+    expect(screen.queryByRole('alert')).toBeNull()
   })
   it('red incierta tras confirmar obliga a consultar perfil antes de otra mutación', async () => {
     const perfilPropio = vi.fn().mockResolvedValue(perfil)
