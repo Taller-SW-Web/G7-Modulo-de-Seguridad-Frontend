@@ -3,6 +3,7 @@ import { crearAlmacenSesion } from './almacenSesion'
 import { crearClienteHttp, type ClienteHttp } from './http'
 import type {
   CodigoRol,
+  CambioMfaEnviado,
   DesafioMfa,
   EstadoCuenta,
   OtpEnviado,
@@ -29,6 +30,18 @@ export interface FiltrosUsuarios {
 
 export function crearApi(cliente: ClienteHttp) {
   return {
+    mfaSolicitar: (accion: 'HABILITAR' | 'DESHABILITAR') =>
+      cliente.request<CambioMfaEnviado>('/auth/mfa/cambios', {
+        method: 'POST', version: 'v2', renovarAnteTokenInvalido: false, body: { accion },
+      }),
+    mfaReenviar: (mfaChangeToken: string) =>
+      cliente.request<CambioMfaEnviado>('/auth/mfa/cambios/reenviar', {
+        method: 'POST', version: 'v2', renovarAnteTokenInvalido: false, body: { mfaChangeToken },
+      }),
+    mfaConfirmar: (mfaChangeToken: string, codigo: string) =>
+      cliente.request<void>('/auth/mfa/cambios/confirmar', {
+        method: 'POST', version: 'v2', renovarAnteTokenInvalido: false, body: { mfaChangeToken, codigo },
+      }),
     login: (correo: string, contrasena: string) =>
       cliente.request<SesionIniciada | DesafioMfa>('/auth/login', {
         method: 'POST',
