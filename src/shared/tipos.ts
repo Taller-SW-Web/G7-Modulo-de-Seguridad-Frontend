@@ -89,6 +89,11 @@ export interface Usuario {
   roles: CodigoRol[]
   tipoDocumento?: 'DNI' | 'CE' | 'PASAPORTE'
   documentoEnmascarado?: string
+  /** Atributos de rol: el backend los envía solo si el rol aplica (null = aún sin registrar). */
+  fechaNacimiento?: string | null
+  codigoVendedor?: string | null
+  tienda?: string | null
+  fechaIngreso?: string | null
   bloqueo?: Bloqueo | null
 }
 
