@@ -9,6 +9,7 @@ import { ApiError, mensajeDeError } from '../../shared/errores'
 import { COLOR_ESTADO, textoEstado, textoVencimiento } from '../../shared/etiquetas'
 import type { Usuario } from '../../shared/tipos'
 import { SeccionRoles } from './SeccionRoles'
+import { AccionesBloqueo } from './AccionesBloqueo'
 
 type Carga = { tipo: 'cargando' } | { tipo: 'listo'; usuario: Usuario } | { tipo: 'error'; error: unknown }
 
@@ -147,6 +148,7 @@ export function AdminDetallePage({ api }: { api: Api }) {
         </Paper>
 
         <SeccionRoles api={api} usuario={usuario} onActualizado={recargar} />
+        <AccionesBloqueo key={usuario.id} api={api} usuario={usuario} onActualizado={recargar} />
       </Stack>
     </Container>
   )
