@@ -12,6 +12,7 @@ import { CambiarContrasenaPage } from './pantallas/cambio-contrasena/CambiarCont
 import { ActividadPage } from './pantallas/actividad/ActividadPage'
 import { AdminListadoPage } from './pantallas/admin-listado/AdminListadoPage'
 import { AdminDetallePage } from './pantallas/admin-detalle/AdminDetallePage'
+import { RecuperacionPage } from './pantallas/recuperacion/RecuperacionPage'
 
 export function Rutas({ api }: { api: Api }) {
   return (
@@ -23,6 +24,10 @@ export function Rutas({ api }: { api: Api }) {
             <LoginPage api={api} />
           </RutaPublica>
         }
+      />
+      <Route
+        path="/recuperar-contrasena"
+        element={<RecuperacionPage api={api} />}
       />
       <Route path="/desbloquear" element={<DesbloqueoPage api={api} />} />
       <Route
