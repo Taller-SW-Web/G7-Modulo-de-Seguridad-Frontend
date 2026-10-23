@@ -51,6 +51,9 @@ export function MiCuentaPage({ api }: { api: Api }) {
             Mi cuenta
           </Title>
           <Group gap="xs">
+            <Button component={Link} to="/mi-cuenta/seguridad" variant="light" size="xs">
+              Segundo factor
+            </Button>
             <Button component={Link} to="/mi-cuenta/contrasena" variant="light" size="xs">
               Cambiar contraseña
             </Button>

@@ -69,6 +69,14 @@ export interface OtpEnviado {
   desafioExpiraEn?: number
 }
 
+export interface CambioMfaEnviado {
+  mfaChangeToken: string
+  canal: 'EMAIL'
+  destinoEnmascarado: string
+  expiraEn: number
+  cambioExpiraEn: number
+}
+
 export interface Bloqueo {
   tipo: 'AUTOMATICO' | 'MANUAL'
   hasta: string | null
