@@ -30,6 +30,10 @@ export interface FiltrosUsuarios {
 
 export function crearApi(cliente: ClienteHttp) {
   return {
+    bloquearUsuario: (id: string, motivo: string) =>
+      cliente.request<void>(`/usuarios/${encodeURIComponent(id)}/bloquear`, { method: 'POST', body: { motivo }, renovarAntesDeEnviar: true, renovarAnteTokenInvalido: false }),
+    desbloquearUsuario: (id: string) =>
+      cliente.request<void>(`/usuarios/${encodeURIComponent(id)}/desbloquear`, { method: 'POST', renovarAntesDeEnviar: true, renovarAnteTokenInvalido: false }),
     mfaSolicitar: (accion: 'HABILITAR' | 'DESHABILITAR') =>
       cliente.request<CambioMfaEnviado>('/auth/mfa/cambios', {
         method: 'POST', version: 'v2', body: { accion },
