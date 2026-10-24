@@ -100,6 +100,28 @@ export interface Usuario {
   bloqueo?: Bloqueo | null
 }
 
+/** Dirección de entrega del titular (SPEC-16, RF-16.5). */
+export interface Direccion {
+  id: string
+  etiqueta?: string | null
+  departamento: string
+  provincia: string
+  distrito: string
+  direccion: string
+  referencia?: string | null
+  esPredeterminada: boolean
+}
+
+export interface NuevaDireccion {
+  etiqueta?: string
+  departamento: string
+  provincia: string
+  distrito: string
+  direccion: string
+  referencia?: string
+  esPredeterminada: boolean
+}
+
 export interface PaginaUsuarios {
   usuarios: Usuario[]
   pagina: number
