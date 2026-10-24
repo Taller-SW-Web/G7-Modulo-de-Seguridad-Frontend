@@ -4,8 +4,10 @@ import { crearClienteHttp, type ClienteHttp } from './http'
 import type {
   CodigoRol,
   CambioMfaEnviado,
+  Direccion,
   DesafioMfa,
   EstadoCuenta,
+  NuevaDireccion,
   OtpEnviado,
   PaginaActividad,
   PaginaUsuarios,
@@ -80,6 +82,10 @@ export function crearApi(cliente: ClienteHttp) {
       cliente.request<PaginaActividad>(`/auth/me/actividad?pagina=${pagina}&tamano=20`, { signal }),
     actualizarPerfilPropio: (id: string, cambios: { nombres?: string; apellidos?: string; celular?: string }) =>
       cliente.request<Usuario>(`/usuarios/${encodeURIComponent(id)}/atributos`, { method: 'PATCH', body: cambios }),
+    listarDirecciones: (id: string, signal?: AbortSignal) =>
+      cliente.request<{ direcciones: Direccion[] }>(`/usuarios/${encodeURIComponent(id)}/direcciones`, { signal }),
+    crearDireccion: (id: string, direccion: NuevaDireccion) =>
+      cliente.request<Direccion>(`/usuarios/${encodeURIComponent(id)}/direcciones`, { method: 'POST', body: direccion }),
     perfilPropio: (signal?: AbortSignal) => cliente.request<Usuario>('/auth/me', { signal }),
     politicaPassword: (signal?: AbortSignal) =>
       cliente.request<PoliticaPassword>('/password/politica', { autenticada: false, signal }),

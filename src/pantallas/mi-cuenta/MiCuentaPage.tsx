@@ -7,6 +7,7 @@ import { mensajeDeError } from '../../shared/errores'
 import { ETIQUETA_ROL } from '../../shared/etiquetas'
 import type { Usuario } from '../../shared/tipos'
 import { EdicionPerfil } from './EdicionPerfil'
+import { SeccionDirecciones } from './SeccionDirecciones'
 
 type Carga = { tipo: 'cargando' } | { tipo: 'listo'; perfil: Usuario } | { tipo: 'error'; error: unknown }
 
@@ -126,6 +127,11 @@ export function MiCuentaPage({ api }: { api: Api }) {
                 </Group>
               )}
             </Stack>
+          </Paper>
+        )}
+        {carga.tipo === 'listo' && carga.perfil.roles.includes('CLIENTE') && (
+          <Paper withBorder p="lg" radius="md">
+            <SeccionDirecciones api={api} usuarioId={carga.perfil.id} />
           </Paper>
         )}
       </Stack>
