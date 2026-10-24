@@ -136,6 +136,13 @@ export function LoginPage({ api }: { api: Api }) {
             <Button type="submit" color="signal" fullWidth loading={enviando} disabled={enviando}>
               {enviando ? 'Iniciando sesión…' : 'Iniciar sesión'}
             </Button>
+            {/* FRONT-01 «Inicial»: entradas a FRONT-02 y al reenvío de FRONT-03 (FEAT-01-T5). */}
+            <Anchor component={Link} to="/registro" size="sm" ta="center">
+              Crear una cuenta
+            </Anchor>
+            <Anchor component={Link} to="/verificar-correo" size="sm" ta="center">
+              ¿No te llegó el correo de verificación?
+            </Anchor>
           </Stack>
         </form>
       </Paper>

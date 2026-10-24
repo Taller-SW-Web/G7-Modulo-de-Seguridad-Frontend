@@ -40,7 +40,16 @@ Para la demo local o un túnel, compilar con `VITE_API_BASE_URL=/api/v1` (en Git
 `G7_BACKEND_URL` (por defecto `http://localhost:8080`) y `G7_HOSTS_PERMITIDOS` admite el host
 público del túnel. Así front y API comparten origen y no hace falta CORS.
 
-`VITE_API_BASE_URL` es la única variable pública prevista. Nada secreto lleva
+Variables públicas de build (llegan al navegador):
+
+| Variable | Uso |
+|---|---|
+| `VITE_API_BASE_URL` | URL base del backend G7, con `/api/v1` |
+| `VITE_RETORNO_MARKETPLACE` | Login de Marketplace (G1) al que vuelve una cuenta de `MARKETPLACE` tras verificar el correo (FRONT-03, FEAT-01-T4). Vacía → nuestro login |
+| `VITE_RETORNO_RETAIL` | Igual para el canal `RETAIL` |
+
+Las de retorno solo se usan si son URL absolutas `https` (o `http://localhost`) sin
+parámetros; el enlace del correo trae el canal, nunca la URL. Nada secreto lleva
 prefijo `VITE_`: ni `client_secret`, ni claves de Supabase, ni tokens. Los
 `.env` locales no se suben (ver `.gitignore`).
 
