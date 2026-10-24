@@ -24,12 +24,25 @@ export function contrasenaDeFixtures(): string {
 }
 
 export async function rellenarInicioSesion(page: Page, correo: string, contrasena: string): Promise<void> {
-  await page.getByLabel('Correo').fill(correo)
-  await page.getByLabel('Contraseña').fill(contrasena)
+  // Rol textbox + nombre accesible: el <label> de Mantine lleva «*» de requerido
+  // (getByLabel exacto no emparejaría) y «Mostrar contraseña» es un botón, no textbox.
+  await page.getByRole('textbox', { name: 'Correo', exact: true }).fill(correo)
+  await page.getByRole('textbox', { name: 'Contraseña', exact: true }).fill(contrasena)
 }
 
 export async function enviarInicioSesion(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Iniciar sesión' }).click()
+}
+
+/**
+ * Navega dentro de la SPA sin recargar: los tokens viven solo en memoria
+ * (sin localStorage ni cookies), así que una recarga perdería la sesión.
+ */
+export async function navegarEnSpa(page: Page, ruta: string): Promise<void> {
+  await page.evaluate((destino) => {
+    window.history.pushState({}, '', destino)
+    window.dispatchEvent(new PopStateEvent('popstate'))
+  }, ruta)
 }
 
 export async function iniciarSesion(page: Page, correo: string, contrasena: string): Promise<void> {

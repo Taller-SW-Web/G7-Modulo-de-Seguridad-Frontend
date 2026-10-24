@@ -2,7 +2,7 @@
 // permiso (§1.4). El reloj de Playwright adelanta el navegador más allá de los
 // 900 s del access token para ejercitar la renovación sin esperarla en real.
 import { expect, test, type Response } from '@playwright/test'
-import { CORREO_CLIENTE, contrasenaDeFixtures, esperarDestinoTrasSesion, iniciarSesion } from './ayudas'
+import { CORREO_CLIENTE, contrasenaDeFixtures, esperarDestinoTrasSesion, iniciarSesion, navegarEnSpa } from './ayudas'
 
 function autorizacion(respuesta: Response): string {
   const cabeceras = respuesta.request().headers()
@@ -14,7 +14,9 @@ test('refresh silencioso: la mutación renueva la sesión sin salir de la pantal
   await iniciarSesion(page, CORREO_CLIENTE, contrasenaDeFixtures())
   await esperarDestinoTrasSesion(page, '/mi-cuenta')
 
-  await page.goto('/mi-cuenta/seguridad')
+  // Enlace interno de Mi cuenta (Button sobre Link → rol «link»): la sesión
+  // vive solo en memoria, no puede recargarse.
+  await page.getByRole('link', { name: 'Segundo factor' }).click()
   await expect(page.getByRole('heading', { name: 'Segundo factor' })).toBeVisible()
   await expect(page.getByText('Segundo factor desactivado.')).toBeVisible()
 
@@ -29,7 +31,7 @@ test('refresh silencioso: la mutación renueva la sesión sin salir de la pantal
   await page.getByRole('button', { name: 'Activar' }).click()
   const respuestaSolicitud = await solicitud
   expect(respuestaSolicitud.ok()).toBeTruthy()
-  await expect(page.getByText('Confirma el cambio')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Confirma el cambio' })).toBeVisible()
 
   // El reenvío lleva `renovarAntesDeEnviar`: la SPA renueva primero y en silencio.
   const refresco = page.waitForResponse(
@@ -50,12 +52,12 @@ test('refresh silencioso: la mutación renueva la sesión sin salir de la pantal
 
   // Sin salto al login: la sesión sigue activa en la misma pantalla.
   await expect(page).toHaveURL(/\/mi-cuenta\/seguridad/)
-  await expect(page.getByText('Confirma el cambio')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Confirma el cambio' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Cerrar sesión' })).toBeVisible()
 
   // Se cancela sin confirmar: el estado de la cuenta fixture no cambia.
   await page.getByRole('button', { name: 'Cancelar' }).click()
-  await expect(page.getByText('Confirma el cambio')).toBeHidden()
+  await expect(page.getByRole('heading', { name: 'Confirma el cambio' })).toBeHidden()
 })
 
 test('logout cierra la sesión y la ruta autenticada vuelve a pedir login', async ({ page }) => {
@@ -86,7 +88,7 @@ test('ruta de administración con sesión de CLIENTE queda bloqueada sin pedir d
     if (solicitud.url().includes('/api/v1/usuarios')) consultasDeUsuarios.push(solicitud.url())
   })
 
-  await page.goto('/admin/usuarios')
+  await navegarEnSpa(page, '/admin/usuarios')
   await expect(page).toHaveURL(/\/admin\/usuarios/)
   await expect(page.getByText('Acceso restringido')).toBeVisible()
   await expect(page.getByRole('alert')).toContainText('No tienes permiso para realizar esta acción.')

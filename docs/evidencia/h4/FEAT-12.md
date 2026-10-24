@@ -1,10 +1,10 @@
 # FEAT-12 — Evidencia de seguridad E2E (Hito 4) — frontend
 
 **Tarea:** FEAT-12-T3 (suite E2E Playwright). **Rama:** `feat/EP-02-seguridad-e2e`
-del frontend, base `develop` `e9cd51d`. **Estado:** implementada y verificada en
-local hasta donde permite esta máquina; la ejecución completa contra el stack de
-pruebas queda **pendiente** (sin Docker/PostgreSQL en el equipo). No se marca T3
-Verificada.
+del frontend, base `develop` `e9cd51d`. **Estado:** implementada y con la
+aceptación local **ejecutada en verde (6/6)** el 24-oct-2026 contra el stack de
+pruebas local (PostgreSQL 16.15 + Mailpit v1.32 binarios, sin Docker). Sigue sin
+marcarse T3 Verificada: la comprobación en el despliegue queda para S3.
 
 ## Revisión documental consumida
 
@@ -46,13 +46,66 @@ contraseña solo por `E2E_CUENTAS_CLAVE`.
   carga bajo `page.clock.install`, `fastForward` adelanta el reloj ≈15 min y los
   localizadores de FRONT-01 responden. (El smoke fue temporal y se retiró.)
 
+## Aceptación local ejecutada (24-oct-2026)
+
+La aceptación («corre en local contra el stack de pruebas») se ejecutó sin
+Docker, con binarios locales desechables en un directorio temporal del equipo:
+
+- **PostgreSQL 16.15 portable**: clúster nuevo; esquema
+  `docs/arquitectura/schema.sql` + migraciones `V101`–`V106` y `V108` (V107 ya
+  venía en el esquema) y catálogos `R__catalogo_autorizacion`/`R__catalogo_scopes`,
+  cada una en su transacción como Flyway.
+- **Backend `bootRun` (JDK 21)** con secretos **generados en el momento y fuera
+  del repo**: clave firmante PKCS8 3072, claves HMAC/AES por variable
+  (`AUTH_OTP_HMAC_KEY*`, `AUTH_OUTBOX_AES_KEY*`, `AUTH_FALLOS_HMAC_KEY*`,
+  `AUTH_SOLICITUD_LIMITADA_HMAC_KEY*`), contraseñas comunes en fichero local
+  (`G7_PASSWORD_COMUNES_ARCHIVO`) y la contraseña de las cuentas fixture solo
+  por `G7_FIXTURES_CUENTAS_CLAVE` (la misma se pasa a la suite como
+  `E2E_CUENTAS_CLAVE`; ninguna viaja por Git). Correo saliente a
+  `SPRING_MAIL_HOST/PORT` del receptor y remitente `*@fixtures.g7.test`.
+- **Mailpit v1.32** (SMTP 1025, API 8025), del que la suite lee el OTP.
+
+Resultado: **6/6 casos en verde en dos corridas consecutivas** (22.4 s y 11.5 s,
+2 workers). Resumen de la última corrida:
+
+```
+ok 1 login cliente abre Mi cuenta (1.9s)
+ok 2 refresh silencioso: la mutación renueva la sesión sin salir de la pantalla (3.2s)
+ok 3 login admin completa el segundo factor con el código del receptor de correo (2.9s)
+ok 4 logout cierra la sesión y la ruta autenticada vuelve a pedir login (2.1s)
+ok 5 ruta privada sin sesión lleva al login y recuerda el destino (1.6s)
+ok 6 ruta de administración con sesión de CLIENTE queda bloqueada sin pedir datos (2.1s)
+6 passed (11.5s)
+```
+
+El informe HTML queda en `playwright-report/` (gitignored; se regenera con
+`npm run e2e` o `npm run e2e:informe`). Compuertas en verde: `typecheck`,
+`lint`, `build` y Vitest 98/98.
+
+Correcciones aplicadas durante la ejecución (los specs vivían solo de revisión
+estática hasta entonces):
+
+- Selectores del login por `getByRole('textbox', …)`: `getByLabel` era ambiguo
+  con el botón «Mostrar contraseña» y con el `*` de requerido del `<label>` de
+  Mantine (el nombre accesible sí es «Correo»/«Contraseña»).
+- Navegación **dentro de la SPA** en los tests con sesión: los tokens viven solo
+  en memoria, así que `page.goto` (recarga) perdía la sesión; se usa el enlace
+  real de Mi cuenta y, para `/admin/usuarios`, `pushState` + `popstate`.
+- El modal del cambio de segundo factor se afirma por su heading: el párrafo
+  «Confirma el cambio con un código enviado a tu correo.» del cuerpo hacía
+  ambiguo `getByText('Confirma el cambio')`.
+
+Comportamiento acreditado de paso: el login con MFA entrega primero el desafío
+y el código se pide con `POST /auth/otp/solicitar`; el reenvío del cambio de
+segundo factor renueva la sesión antes de enviar (`POST /auth/refresh` observado
+y Authorization distinto en el reenvío), sin salir de la pantalla.
+
 ## Pendiente para Verificada
 
-- Ejecución completa de la suite contra el stack de pruebas (aceptación: «corre
-  en local»): esta máquina no tiene Docker ni PostgreSQL; el stack auxiliar
-  (`e2e/stack.yml`) y la receta (`e2e/README.md`) quedan listos para quien
-  disponga de Docker, y también sirve de base al job de FEAT-12-T4.
-- Reporte HTML de Playwright y capturas como evidencia de la ejecución.
+- Comprobación en el entorno de integración tras fusionar y desplegar (plan H4
+  §flujo, punto 4), junto con T1/T2 en S3: la aceptación de T3 ya está cubierta
+  en local.
+- Capturas del despliegue y el informe del job de FEAT-12-T4.
 
 ## Observación (no bloqueante)
 

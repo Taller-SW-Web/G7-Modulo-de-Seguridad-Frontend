@@ -31,7 +31,7 @@ test('login admin completa el segundo factor con el código del receptor de corr
   await expect(page.getByText(/Escribe el código que enviamos a/)).toBeVisible()
 
   const codigo = await esperarCodigoOtp(request, CORREO_ADMIN, anteriores)
-  await page.getByLabel('Dígito 1 de 6').pressSequentially(codigo, { delay: 40 })
+  await page.getByLabel('Dígito 1 de 6', { exact: true }).pressSequentially(codigo, { delay: 40 })
 
   // ADMIN_SISTEMA tiene usuario.ver: el destino por defecto es el panel.
   await esperarDestinoTrasSesion(page, '/admin/usuarios')
