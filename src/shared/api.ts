@@ -82,6 +82,11 @@ export function crearApi(cliente: ClienteHttp) {
       cliente.request<PaginaActividad>(`/auth/me/actividad?pagina=${pagina}&tamano=20`, { signal }),
     actualizarPerfilPropio: (id: string, cambios: { nombres?: string; apellidos?: string; celular?: string }) =>
       cliente.request<Usuario>(`/usuarios/${encodeURIComponent(id)}/atributos`, { method: 'PATCH', body: cambios }),
+    solicitarCambioCorreo: (id: string, nuevoCorreo: string, contrasenaActual: string) =>
+      cliente.request<void>(`/usuarios/${encodeURIComponent(id)}/correo`, {
+        method: 'POST',
+        body: { nuevoCorreo, contrasenaActual },
+      }),
     listarDirecciones: (id: string, signal?: AbortSignal) =>
       cliente.request<{ direcciones: Direccion[] }>(`/usuarios/${encodeURIComponent(id)}/direcciones`, { signal }),
     crearDireccion: (id: string, direccion: NuevaDireccion) =>
