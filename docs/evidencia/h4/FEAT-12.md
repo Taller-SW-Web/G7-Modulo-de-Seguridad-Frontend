@@ -3,8 +3,10 @@
 **Tarea:** FEAT-12-T3 (suite E2E Playwright). **Rama:** `feat/EP-02-seguridad-e2e`
 del frontend, base `develop` `e9cd51d`. **Estado:** implementada y con la
 aceptación local **ejecutada en verde (6/6)** el 24-oct-2026 contra el stack de
-pruebas local (PostgreSQL 16.15 + Mailpit v1.32 binarios, sin Docker). Sigue sin
-marcarse T3 Verificada: la comprobación en el despliegue queda para S3.
+pruebas local (PostgreSQL 16.15 + Mailpit v1.32 binarios, sin Docker) y
+**re-ejecutada el 26-oct-2026 con las versiones del entorno anotadas** (sección
+«Ejecución con versiones», abajo), para responder a la revisión del PR #17. Sigue
+sin marcarse T3 Verificada: la comprobación en el despliegue queda para S3.
 
 ## Revisión documental consumida
 
@@ -100,11 +102,66 @@ y el código se pide con `POST /auth/otp/solicitar`; el reenvío del cambio de
 segundo factor renueva la sesión antes de enviar (`POST /auth/refresh` observado
 y Authorization distinto en el reenvío), sin salir de la pantalla.
 
+## Ejecución con versiones (26-oct-2026)
+
+Re-ejecución pedida en la revisión del PR #17 («ejecutar los seis casos contra el
+stack real y adjuntar el resultado con las versiones utilizadas»), con el stack real
+levantado de nuevo: PostgreSQL, backend `bootRun` y Mailpit, binarios locales
+desechables (sin Docker).
+
+| Componente | Versión / corte |
+|---|---|
+| Sistema | Windows x86_64 (shell Git-bash), kernel 10.0-26200 |
+| Node / npm | v24.21.0 / 11.19.0 |
+| Playwright | 1.64.1 |
+| Navegador | Chromium «Chrome for Testing» 156.0.8078.4 (paquete `chromium-1248`) |
+| PostgreSQL | 16.15 (binario portable, sin Docker) |
+| Receptor SMTP/API | Mailpit v1.32.0 (`go1.27.3`, `windows/amd64`), SMTP 1025 / API 8025 |
+| Backend bajo prueba | `Modulo-de-Seguridad-Backend`, rama `feat/EP-02-seguridad-e2e` @ `76e248f` (incluye el merge de `develop` del 26-oct), `bootRun` con OpenJDK 21.0.12+1 |
+| SPA bajo prueba | este repositorio, rama `feat/EP-02-seguridad-e2e`, `vite dev` con proxy `/api` → `:8080` |
+
+Comando (los secretos solo por variables de entorno, ninguno vive en el repo):
+
+```bash
+export E2E_CUENTAS_CLAVE='…'    # valor en la terminal/gestor, nunca en Git
+npx playwright test             # 6 casos, 2 workers, baseURL http://localhost:5173
+```
+
+Resultado — **6/6 en verde**:
+
+```
+Running 6 tests using 2 workers
+  ok 1 login cliente abre Mi cuenta (1.2s)
+  ok 2 refresh silencioso: la mutación renueva la sesión sin salir de la pantalla (2.3s)
+  ok 3 login admin completa el segundo factor con el código del receptor de correo (2.5s)
+  ok 4 logout cierra la sesión y la ruta autenticada vuelve a pedir login (1.2s)
+  ok 5 ruta privada sin sesión lleva al login y recuerda el destino (884ms)
+  ok 6 ruta de administración con sesión de CLIENTE queda bloqueada sin pedir datos (1.4s)
+  6 passed (6.7s)
+```
+
+La corrida inmediatamente anterior, hecha **sin reiniciar la cuota**, falló 1 de 6 con
+el aviso del servidor «Espera el tiempo indicado antes de pedir otro código.»:
+`cliente.a` acumuló 3 solicitudes `CAMBIO_MFA` en 15 minutos (cuota comprobada en la
+BD local), el límite que `e2e/README.md` §Notas ya advertía al apilar ejecuciones.
+Reiniciada la cuota (`DELETE FROM otp; DELETE FROM desafio_mfa;`, solo en la BD
+desechable), la suite volvió a 6/6 (6.7 s) y una corrida final de confirmación volvió
+a **6/6 (6.8 s)**. No es un defecto de la SPA sino el límite de frecuencia del backend
+de pruebas.
+
+Compuertas en el mismo corte: `npm run typecheck` y `npm run lint` sin errores,
+`npm run build` `✓ built in 8.16s`, `npm test` (Vitest) **98/98**.
+
+El informe HTML completo de esta corrida queda en `playwright-report/` (gitignored,
+se regenera con `npm run e2e:informe`); este bloque es su resumen sanitizado. La
+acreditación de esta ejecución **en el CI** corresponde a FEAT-12-T4 (job E2E), hoy
+bloqueada por FEAT-09-T1/T2.
+
 ## Pendiente para Verificada
 
 - Comprobación en el entorno de integración tras fusionar y desplegar (plan H4
   §flujo, punto 4), junto con T1/T2 en S3: la aceptación de T3 ya está cubierta
-  en local.
+  en local (24-oct y 26-oct).
 - Capturas del despliegue y el informe del job de FEAT-12-T4.
 
 ## Observación (no bloqueante)
