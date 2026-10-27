@@ -133,10 +133,10 @@ Resultado — **6/6 en verde**:
 Running 6 tests using 2 workers
   ok 1 login cliente abre Mi cuenta (1.2s)
   ok 2 refresh silencioso: la mutación renueva la sesión sin salir de la pantalla (2.3s)
-  ok 3 login admin completa el segundo factor con el código del receptor de correo (2.5s)
   ok 4 logout cierra la sesión y la ruta autenticada vuelve a pedir login (1.2s)
-  ok 5 ruta privada sin sesión lleva al login y recuerda el destino (884ms)
-  ok 6 ruta de administración con sesión de CLIENTE queda bloqueada sin pedir datos (1.4s)
+  ok 3 login admin completa el segundo factor con el código del receptor de correo (2.5s)
+  ok 6 ruta privada sin sesión lleva al login y recuerda el destino (884ms)
+  ok 5 ruta de administración con sesión de CLIENTE queda bloqueada sin pedir datos (1.4s)
   6 passed (6.7s)
 ```
 
