@@ -14,6 +14,8 @@ import { AdminListadoPage } from './pantallas/admin-listado/AdminListadoPage'
 import { AdminDetallePage } from './pantallas/admin-detalle/AdminDetallePage'
 import { RecuperacionPage } from './pantallas/recuperacion/RecuperacionPage'
 import { SegundoFactorPage } from './pantallas/segundo-factor/SegundoFactorPage'
+import { RegistroPage } from './pantallas/registro/RegistroPage'
+import { VerificacionCorreoPage } from './pantallas/verificacion/VerificacionCorreoPage'
 
 export function Rutas({ api }: { api: Api }) {
   return (
@@ -26,6 +28,16 @@ export function Rutas({ api }: { api: Api }) {
           </RutaPublica>
         }
       />
+      <Route
+        path="/registro"
+        element={
+          <RutaPublica>
+            <RegistroPage api={api} />
+          </RutaPublica>
+        }
+      />
+      {/* Sin RutaPublica: con sesión abierta, FRONT-03 ofrece «Ir a Mi cuenta». */}
+      <Route path="/verificar-correo" element={<VerificacionCorreoPage api={api} />} />
       <Route
         path="/recuperar-contrasena"
         element={<RecuperacionPage api={api} />}

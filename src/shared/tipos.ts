@@ -45,6 +45,23 @@ export interface UsuarioSesion {
   roles: CodigoRol[]
 }
 
+/** Cuerpo de `POST /auth/registro` (SPEC-01). La SPA siempre registra por `WEB`. */
+export interface RegistroCliente {
+  correo: string
+  contrasena: string
+  nombres: string
+  apellidos: string
+  celular: string
+  aceptaTerminos: true
+  canalOrigen: 'WEB'
+}
+
+/** `201` del registro: la cuenta queda pendiente y sin sesión (RF-01.7). */
+export interface CuentaRegistrada {
+  id: string
+  estado: 'PENDIENTE_VERIFICACION'
+}
+
 export interface SesionIniciada {
   accessToken: string
   refreshToken: string
