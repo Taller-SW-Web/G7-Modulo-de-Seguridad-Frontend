@@ -14,10 +14,10 @@ describe('FEAT-01-T4 retorno por canal (FRONT-03)', () => {
     }
   })
 
-  it('traduce MARKETPLACE y RETAIL a su URL configurada; WEB y CHATBOT usan nuestro login', () => {
-    const configuracion = { VITE_RETORNO_MARKETPLACE: G1, VITE_RETORNO_RETAIL: 'https://retail.example/ingresar' }
+  it('MARKETPLACE y RETAIL vuelven al mismo login de Marketplace; WEB y CHATBOT usan nuestro login', () => {
+    const configuracion = { VITE_RETORNO_MARKETPLACE: G1 }
     expect(retornoDelCanal('MARKETPLACE', configuracion)).toBe(G1)
-    expect(retornoDelCanal('RETAIL', configuracion)).toBe('https://retail.example/ingresar')
+    expect(retornoDelCanal('RETAIL', configuracion)).toBe(G1)
     expect(retornoDelCanal('WEB', configuracion)).toBeNull()
     expect(retornoDelCanal('CHATBOT', configuracion)).toBeNull()
   })

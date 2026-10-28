@@ -1,13 +1,14 @@
 // Retorno por canal tras verificar el correo (FRONT-03, RF-02.8, FEAT-01-T4). El enlace solo trae el
 // nombre del canal; la URL sale de esta lista por entorno, así no hay redirección abierta.
+// MARKETPLACE y RETAIL vuelven al mismo login de Marketplace (SPEC-02 RF-02.8, decisión del PO 26-oct).
 
 export type CanalOrigen = 'WEB' | 'CHATBOT' | 'RETAIL' | 'MARKETPLACE'
 
-type Configuracion = Partial<Record<'VITE_RETORNO_MARKETPLACE' | 'VITE_RETORNO_RETAIL', string>>
+type Configuracion = Partial<Record<'VITE_RETORNO_MARKETPLACE', string>>
 
 const VARIABLE: Partial<Record<CanalOrigen, keyof Configuracion>> = {
   MARKETPLACE: 'VITE_RETORNO_MARKETPLACE',
-  RETAIL: 'VITE_RETORNO_RETAIL',
+  RETAIL: 'VITE_RETORNO_MARKETPLACE',
 }
 
 /** `canal` del enlace si pertenece a la lista cerrada; cualquier otra cosa vale `WEB`. */
