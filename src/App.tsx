@@ -12,6 +12,8 @@ import { CambiarContrasenaPage } from './pantallas/cambio-contrasena/CambiarCont
 import { ActividadPage } from './pantallas/actividad/ActividadPage'
 import { AdminListadoPage } from './pantallas/admin-listado/AdminListadoPage'
 import { AdminDetallePage } from './pantallas/admin-detalle/AdminDetallePage'
+import { RecuperacionPage } from './pantallas/recuperacion/RecuperacionPage'
+import { SegundoFactorPage } from './pantallas/segundo-factor/SegundoFactorPage'
 
 export function Rutas({ api }: { api: Api }) {
   return (
@@ -23,6 +25,10 @@ export function Rutas({ api }: { api: Api }) {
             <LoginPage api={api} />
           </RutaPublica>
         }
+      />
+      <Route
+        path="/recuperar-contrasena"
+        element={<RecuperacionPage api={api} />}
       />
       <Route path="/desbloquear" element={<DesbloqueoPage api={api} />} />
       <Route
@@ -43,6 +49,7 @@ export function Rutas({ api }: { api: Api }) {
         <Route path="/mi-cuenta" element={<MiCuentaPage api={api} />} />
         <Route path="/mi-cuenta/contrasena" element={<CambiarContrasenaPage api={api} />} />
         <Route path="/mi-cuenta/actividad" element={<ActividadPage api={api} />} />
+        <Route path="/mi-cuenta/seguridad" element={<SegundoFactorPage api={api} />} />
         <Route
           path="/admin/usuarios"
           element={

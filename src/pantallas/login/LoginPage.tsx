@@ -1,8 +1,8 @@
 // FRONT-01 — Inicio de sesión. Acción principal en `signal` (pantallas de autenticación).
-import { Alert, Button, Center, Paper, PasswordInput, Stack, Text, TextInput, ThemeIcon, Title } from '@mantine/core'
+import { Alert, Anchor, Button, Center, Paper, PasswordInput, Stack, Text, TextInput, ThemeIcon, Title } from '@mantine/core'
 import { IconShieldLock } from '@tabler/icons-react'
 import { useRef, useState, type FormEvent } from 'react'
-import { useLocation, useNavigate } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router'
 import type { Api } from '../../shared/api'
 import { destinoPorDefecto, volverSeguro } from '../../shared/navegacion'
 import { useSesion } from '../../shared/sesion'
@@ -30,6 +30,7 @@ export function LoginPage({ api }: { api: Api }) {
   const refContrasena = useRef<HTMLInputElement>(null)
   const llegada =
     avisoRecibido ?? (estado.tipo === 'sin-sesion' && estado.motivo ? AVISOS_LLEGADA[estado.motivo] : null)
+  const contrasenaCaducada = aviso === 'Tu contraseña caducó.'
 
   async function enviar(evento: FormEvent) {
     evento.preventDefault()
@@ -119,6 +120,19 @@ export function LoginPage({ api }: { api: Api }) {
               visibilityToggleButtonProps={{ 'aria-label': 'Mostrar contraseña' }}
               required
             />
+            <Anchor
+              component={Link}
+              to="/recuperar-contrasena"
+              state={{ correo }}
+              size="sm"
+            >
+              ¿Olvidaste tu contraseña?
+            </Anchor>
+            {contrasenaCaducada && (
+              <Anchor component={Link} to="/recuperar-contrasena" state={{ correo, enfocarEnviar: true }} size="sm">
+                Restablecer mi contraseña
+              </Anchor>
+            )}
             <Button type="submit" color="signal" fullWidth loading={enviando} disabled={enviando}>
               {enviando ? 'Iniciando sesión…' : 'Iniciar sesión'}
             </Button>

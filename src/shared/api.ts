@@ -3,6 +3,7 @@ import { crearAlmacenSesion } from './almacenSesion'
 import { crearClienteHttp, type ClienteHttp } from './http'
 import type {
   CodigoRol,
+  CambioMfaEnviado,
   DesafioMfa,
   EstadoCuenta,
   OtpEnviado,
@@ -29,6 +30,22 @@ export interface FiltrosUsuarios {
 
 export function crearApi(cliente: ClienteHttp) {
   return {
+    bloquearUsuario: (id: string, motivo: string) =>
+      cliente.request<void>(`/usuarios/${encodeURIComponent(id)}/bloquear`, { method: 'POST', body: { motivo }, renovarAntesDeEnviar: true, renovarAnteTokenInvalido: false }),
+    desbloquearUsuario: (id: string) =>
+      cliente.request<void>(`/usuarios/${encodeURIComponent(id)}/desbloquear`, { method: 'POST', renovarAntesDeEnviar: true, renovarAnteTokenInvalido: false }),
+    mfaSolicitar: (accion: 'HABILITAR' | 'DESHABILITAR') =>
+      cliente.request<CambioMfaEnviado>('/auth/mfa/cambios', {
+        method: 'POST', version: 'v2', body: { accion },
+      }),
+    mfaReenviar: (mfaChangeToken: string) =>
+      cliente.request<CambioMfaEnviado>('/auth/mfa/cambios/reenviar', {
+        method: 'POST', version: 'v2', renovarAntesDeEnviar: true, renovarAnteTokenInvalido: false, body: { mfaChangeToken },
+      }),
+    mfaConfirmar: (mfaChangeToken: string, codigo: string) =>
+      cliente.request<void>('/auth/mfa/cambios/confirmar', {
+        method: 'POST', version: 'v2', renovarAntesDeEnviar: true, renovarAnteTokenInvalido: false, body: { mfaChangeToken, codigo },
+      }),
     login: (correo: string, contrasena: string) =>
       cliente.request<SesionIniciada | DesafioMfa>('/auth/login', {
         method: 'POST',
@@ -53,6 +70,12 @@ export function crearApi(cliente: ClienteHttp) {
       cliente.request<void>('/auth/desbloquear', { method: 'POST', body: { token }, autenticada: false }),
     cambiarContrasena: (contrasenaActual: string, nuevaContrasena: string) =>
       cliente.request<void>('/password/cambiar', { method: 'POST', body: { contrasenaActual, nuevaContrasena } }),
+    solicitarRecuperacion: (correo: string) =>
+      cliente.request<void>('/password/recuperar', { method: 'POST', body: { correo }, autenticada: false }),
+    restablecerContrasena: (token: string, nuevaContrasena: string) =>
+      cliente.request<void>('/password/restablecer', {
+        method: 'POST', body: { token, nuevaContrasena }, autenticada: false,
+      }),
     actividadPropia: (pagina: number, signal?: AbortSignal) =>
       cliente.request<PaginaActividad>(`/auth/me/actividad?pagina=${pagina}&tamano=20`, { signal }),
     actualizarPerfilPropio: (id: string, cambios: { nombres?: string; apellidos?: string; celular?: string }) =>
