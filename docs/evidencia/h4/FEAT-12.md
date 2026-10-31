@@ -102,6 +102,45 @@ y el código se pide con `POST /auth/otp/solicitar`; el reenvío del cambio de
 segundo factor renueva la sesión antes de enviar (`POST /auth/refresh` observado
 y Authorization distinto en el reenvío), sin salir de la pantalla.
 
+## Ejecución con versiones (31-oct-2026)
+
+Ejecución contra el stack real levantado para avanzar la T4: PostgreSQL 16.15 (binario portable, sin Docker) + Mailpit v1.32 (SMTP 1025 / API 8025) + backend `bootRun` @ `76e248f` con OpenJDK 21.0.12+1; SPA por `vite dev` con proxy `/api` → `:8080`. Sin Docker, binarios locales desechables.
+
+| Componente | Versión / corte |
+|---|---|
+| Sistema | Windows x86_64 (shell Git-bash), kernel 10.0-26200 |
+| Node / npm | v24.21.0 / 11.19.0 |
+| Playwright | 1.64.1 |
+| Navegador | Chromium «Chrome for Testing» 156.0.8078.4 (`chromium-1248`) |
+| PostgreSQL | 16.15 (binario portable, sin Docker) |
+| Receptor SMTP/API | Mailpit v1.32.0 (`go1.27.3`, `windows/amd64`), SMTP 1025 / API 8025 |
+| Backend bajo prueba | `Modulo-de-Seguridad-Backend`, rama `feat/EP-02-seguridad-e2e` @ `76e248f`, `bootRun` OpenJDK 21.0.12+1 |
+| SPA bajo prueba | este repositorio, rama `feat/EP-02-seguridad-e2e`, `vite dev` con proxy `/api` → `:8080` |
+
+Comando (los secretos solo por variables de entorno, ninguno vive en el repo):
+
+```bash
+export E2E_CUENTAS_CLAVE='…'    # valor en la terminal/gestor, nunca en Git
+npx playwright test             # 6 casos, 2 workers, baseURL http://localhost:5173
+```
+
+Resultado — **6/6 en verde** (16.5 s):
+
+```
+Running 6 tests using 2 workers
+  ok 1 login cliente abre Mi cuenta (3.5s)
+  ok 2 refresh silencioso: la mutación renueva la sesión sin salir de la pantalla (4.5s)
+  ok 4 logout cierra la sesión y la ruta autenticada vuelve a pedir login (2.0s)
+  ok 3 login admin completa el segundo factor con el código del receptor de correo (3.6s)
+  ok 5 ruta privada sin sesión lleva al login y recuerda el destino (1.5s)
+  ok 6 ruta de administración con sesión de CLIENTE queda bloqueada sin pedir datos (2.2s)
+  6 passed (16.5s)
+```
+
+Compuertas en el mismo corte: `npm run typecheck` y `npm run lint` sin errores, `npm run build` ✓ y `npm test` (Vitest) **98/98**.
+
+El informe HTML completo queda en `playwright-report/` (gitignored, se regenera con `npm run e2e:informe`); este bloque es su resumen sanitizado. La acreditación de esta ejecución **en el CI** corresponde a FEAT-12-T4 (job E2E), que hoy puede arrancar porque Christian ya tiene FEAT-09-T1 y FEAT-09-T2 merged en `main`.
+
 ## Ejecución con versiones (26-oct-2026)
 
 Re-ejecución pedida en la revisión del PR #17 («ejecutar los seis casos contra el
@@ -159,10 +198,15 @@ bloqueada por FEAT-09-T1/T2.
 
 ## Pendiente para Verificada
 
-- Comprobación en el entorno de integración tras fusionar y desplegar (plan H4
-  §flujo, punto 4), junto con T1/T2 en S3: la aceptación de T3 ya está cubierta
-  en local (24-oct y 26-oct).
-- Capturas del despliegue y el informe del job de FEAT-12-T4.
+- **Comprobación en el entorno de integración S3** (plan H4 §flujo, punto 4), junto con T1/T2:
+  - **T1**: `iss` de un token real desplegado == `issuer` del discovery de ese entorno. Requiere credenciales por canal seguro para obtener el token y comparar con el `issuer` público del JWKS desplegado.
+  - **T2**: Captura de la actividad `SESION_CERRADA` en `/auth/me/actividad` tras cerrar sesión; un logout repetido no duplica el hecho.
+  - **T3**: Acreditación de la suite E2E Playwright contra el mismo despliegue (login cliente; login admin con OTP leído por receptor; refresh silencioso con `page.clock` +900 s; logout; ruta `/admin/usuarios` con CLIENTE bloqueada sin llamar a `GET /usuarios`; ruta privada sin sesión → `/login?volver=…`). La evidencia local ya está cubierta (24-oct y 31-oct corridas 6/6).
+- **Capturas del despliegue y el informe del job de FEAT-12-T4**: evidencia del job E2E en CI contra el despliegue, con reporte HTML subido como artefacto.
+
+## Observación (no bloqueante)
+
+El guard `RutaAdmin` muestra «Acceso restringido» con el mensaje de `MENSAJES.permiso` («No tienes permiso para realizar esta acción.»); FRONT-00 §1.4 pide «No tienes permiso para ver esta página.». El caso E2E acredita el comportamiento real (alerta y cero llamadas al endpoint); la diferencia de redacción queda anotada para el dueño de la pantalla.
 
 ## Observación (no bloqueante)
 
