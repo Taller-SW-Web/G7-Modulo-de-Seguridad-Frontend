@@ -4,6 +4,7 @@ import { crearClienteHttp, type ClienteHttp } from './http'
 import type {
   CodigoRol,
   CambioMfaEnviado,
+  CuentaRegistrada,
   Direccion,
   DesafioMfa,
   EstadoCuenta,
@@ -12,6 +13,7 @@ import type {
   PaginaActividad,
   PaginaUsuarios,
   PoliticaPassword,
+  RegistroCliente,
   SesionIniciada,
   Usuario,
 } from './tipos'
@@ -68,6 +70,12 @@ export function crearApi(cliente: ClienteHttp) {
         body: { challengeToken, codigo },
         autenticada: false,
       }),
+    registrar: (datos: RegistroCliente) =>
+      cliente.request<CuentaRegistrada>('/auth/registro', { method: 'POST', body: datos, autenticada: false }),
+    verificarCorreo: (token: string) =>
+      cliente.request<void>('/auth/verificar-correo', { method: 'POST', body: { token }, autenticada: false }),
+    reenviarVerificacion: (correo: string) =>
+      cliente.request<void>('/auth/verificar-correo/reenviar', { method: 'POST', body: { correo }, autenticada: false }),
     desbloquear: (token: string) =>
       cliente.request<void>('/auth/desbloquear', { method: 'POST', body: { token }, autenticada: false }),
     cambiarContrasena: (contrasenaActual: string, nuevaContrasena: string) =>
