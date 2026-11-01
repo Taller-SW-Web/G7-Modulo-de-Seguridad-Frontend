@@ -6,7 +6,9 @@ import type { Api } from '../../shared/api'
 import { mensajeDeError } from '../../shared/errores'
 import { ETIQUETA_ROL } from '../../shared/etiquetas'
 import type { Usuario } from '../../shared/tipos'
+import { CambioCorreo } from './CambioCorreo'
 import { EdicionPerfil } from './EdicionPerfil'
+import { SeccionDirecciones } from './SeccionDirecciones'
 
 type Carga = { tipo: 'cargando' } | { tipo: 'listo'; perfil: Usuario } | { tipo: 'error'; error: unknown }
 
@@ -30,6 +32,9 @@ export function MiCuentaPage({ api }: { api: Api }) {
   const [carga, setCarga] = useState<Carga>({ tipo: 'cargando' })
   const [intento, setIntento] = useState(0)
   const [editando, setEditando] = useState(false)
+  const [cambiandoCorreo, setCambiandoCorreo] = useState(false)
+  const [correoPendiente, setCorreoPendiente] = useState<string | null>(null)
+
   const reintentar = useCallback(() => setIntento((n) => n + 1), [])
 
   useEffect(() => {
@@ -91,6 +96,13 @@ export function MiCuentaPage({ api }: { api: Api }) {
                   ))}
                 </Group>
               </Group>
+
+              {!editando && correoPendiente && (
+                <Alert color="blue" role="status">
+                  {`Te enviamos un enlace a ${correoPendiente}. Hasta que lo confirmes, sigues entrando con ${carga.perfil.correo}. También avisamos a tu correo actual.`}
+                </Alert>
+              )}
+
               {editando ? (
                 <EdicionPerfil
                   api={api}
@@ -102,24 +114,28 @@ export function MiCuentaPage({ api }: { api: Api }) {
                   }}
                 />
               ) : (
-              <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-                <Dato etiqueta="Nombres" valor={carga.perfil.nombres} />
-                <Dato etiqueta="Apellidos" valor={carga.perfil.apellidos} />
-                <Dato
-                  etiqueta="Correo"
-                  valor={carga.perfil.correo}
-                  nota={carga.perfil.correoVerificado ? 'Verificado' : 'Sin verificar'}
-                />
-                <Dato
-                  etiqueta="Celular"
-                  valor={carga.perfil.celular}
-                  nota={carga.perfil.celular ? (carga.perfil.celularVerificado ? 'Verificado' : 'Sin verificar') : undefined}
-                />
-                <Dato etiqueta="Segundo factor" valor={carga.perfil.mfaHabilitado ? 'Activo' : 'Inactivo'} />
-              </SimpleGrid>
+                <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+                  <Dato etiqueta="Nombres" valor={carga.perfil.nombres} />
+                  <Dato etiqueta="Apellidos" valor={carga.perfil.apellidos} />
+                  <Dato
+                    etiqueta="Correo"
+                    valor={carga.perfil.correo}
+                    nota={carga.perfil.correoVerificado ? 'Verificado' : 'Sin verificar'}
+                  />
+                  <Dato
+                    etiqueta="Celular"
+                    valor={carga.perfil.celular}
+                    nota={carga.perfil.celular ? (carga.perfil.celularVerificado ? 'Verificado' : 'Sin verificar') : undefined}
+                  />
+                  <Dato etiqueta="Segundo factor" valor={carga.perfil.mfaHabilitado ? 'Activo' : 'Inactivo'} />
+                </SimpleGrid>
               )}
+
               {!editando && (
-                <Group justify="flex-end">
+                <Group justify="flex-end" gap="xs">
+                  <Button variant="light" size="xs" onClick={() => setCambiandoCorreo(true)}>
+                    Cambiar correo
+                  </Button>
                   <Button variant="light" size="xs" onClick={() => setEditando(true)}>
                     Editar mis datos
                   </Button>
@@ -128,7 +144,25 @@ export function MiCuentaPage({ api }: { api: Api }) {
             </Stack>
           </Paper>
         )}
+        {carga.tipo === 'listo' && carga.perfil.roles.includes('CLIENTE') && (
+          <Paper withBorder p="lg" radius="md">
+            <SeccionDirecciones api={api} usuarioId={carga.perfil.id} />
+          </Paper>
+        )}
       </Stack>
+
+      {carga.tipo === 'listo' && (
+        <CambioCorreo
+          api={api}
+          perfil={carga.perfil}
+          abierto={cambiandoCorreo}
+          onCerrar={() => setCambiandoCorreo(false)}
+          onSolicitado={(correo) => {
+            setCorreoPendiente(correo)
+            setCambiandoCorreo(false)
+          }}
+        />
+      )}
     </Container>
   )
 }
