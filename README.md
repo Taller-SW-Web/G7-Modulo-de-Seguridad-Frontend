@@ -45,10 +45,11 @@ Variables públicas de build (llegan al navegador):
 | Variable | Uso |
 |---|---|
 | `VITE_API_BASE_URL` | URL base del backend G7, con `/api/v1` |
-| `VITE_RETORNO_MARKETPLACE` | Login de Marketplace (G1) al que vuelven las cuentas de `MARKETPLACE` y `RETAIL` tras verificar el correo (FRONT-03, FEAT-01-T4). Vacía → nuestro login |
+| `VITE_RETORNO_MARKETPLACE` | Login de G1 al que vuelven `MARKETPLACE` y `RETAIL` (FRONT-03 y FRONT-05) |
 
-La de retorno solo se usa si es una URL absoluta `https` (o `http://localhost`) sin
-parámetros; el enlace del correo trae el canal, nunca la URL. Nada secreto lleva
+Las URL de retorno solo se usan si son absolutas `https` (o `http://localhost`) sin
+parámetros; el enlace del correo trae el canal, nunca la URL. Si una variable está
+vacía o contiene una URL inválida, se usa nuestro login. Nada secreto lleva
 prefijo `VITE_`: ni `client_secret`, ni claves de Supabase, ni tokens. Los
 `.env` locales no se suben (ver `.gitignore`).
 

@@ -4,10 +4,16 @@ import { useNavigate } from 'react-router'
 import { MedidorPassword } from '../../../componentes/MedidorPassword'
 import type { Api } from '../../../shared/api'
 import { ApiError, mensajeDeError } from '../../../shared/errores'
+import { retornoDelCanal, type CanalOrigen } from '../../../shared/retornoCanal'
 import { useSesion } from '../../../shared/sesion'
 import type { PoliticaPassword } from '../../../shared/tipos'
 
-export function DefinirContrasena({ api, token, onPedirEnlace }: { api: Api; token: string; onPedirEnlace: () => void }) {
+export function DefinirContrasena({ api, token, canal, onPedirEnlace }: {
+  api: Api
+  token: string
+  canal: CanalOrigen
+  onPedirEnlace: () => void
+}) {
   const navegar = useNavigate()
   const { terminarSesion } = useSesion()
   const [politica, setPolitica] = useState<PoliticaPassword | null>(null)
@@ -19,6 +25,8 @@ export function DefinirContrasena({ api, token, onPedirEnlace }: { api: Api; tok
   const [general, setGeneral] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
   const [enlaceFinal, setEnlaceFinal] = useState<'invalido' | 'vencido' | null>(null)
+  const [restablecida, setRestablecida] = useState(false)
+  const retorno = retornoDelCanal(canal)
 
   useEffect(() => {
     const control = new AbortController()
@@ -37,7 +45,7 @@ export function DefinirContrasena({ api, token, onPedirEnlace }: { api: Api; tok
     try {
       await api.restablecerContrasena(token, nueva)
       terminarSesion('cerrada')
-      navegar('/login', { replace: true, state: { aviso: 'Tu contraseña se actualizó. Ya puedes iniciar sesión.' } })
+      setRestablecida(true)
     } catch (error) {
       if (error instanceof ApiError && error.code === 'POLITICA_INCUMPLIDA') {
         setRechazadas(new Set((error.problem.errores ?? []).map((item) => item.regla ?? '').filter(Boolean)))
@@ -52,6 +60,24 @@ export function DefinirContrasena({ api, token, onPedirEnlace }: { api: Api; tok
     } finally {
       setEnviando(false)
     }
+  }
+
+  if (restablecida) {
+    return (
+      <Stack gap="md">
+        <Alert color="green" variant="light" role="status" tabIndex={-1}>
+          Tu contraseña se actualizó. Ya puedes iniciar sesión.
+        </Alert>
+        {retorno ? (
+          <Button component="a" href={retorno}>Iniciar sesión</Button>
+        ) : (
+          <Button type="button" onClick={() => navegar('/login', {
+            replace: true,
+            state: { aviso: 'Tu contraseña se actualizó. Ya puedes iniciar sesión.' },
+          })}>Iniciar sesión</Button>
+        )}
+      </Stack>
+    )
   }
 
   if (enlaceFinal) {

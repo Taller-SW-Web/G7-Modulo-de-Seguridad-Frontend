@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { MantineProvider } from '@mantine/core'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Rutas } from '../../App'
 import { crearAlmacenSesion, type AlmacenSesion } from '../../shared/almacenSesion'
 import { ApiError, RedError } from '../../shared/errores'
@@ -16,6 +16,11 @@ const politica: PoliticaPassword = {
   longitudMinima: 10, requiereMayuscula: true, requiereMinuscula: true, requiereDigito: true,
   requiereCaracterEspecial: true, rechazaComunes: true, rechazaDatosPersonales: true, historial: 5,
 }
+
+afterEach(() => {
+  window.history.replaceState(null, '', '/')
+  vi.unstubAllEnvs()
+})
 
 function renderizarConNavegador(api: Partial<Api>, almacen: AlmacenSesion = crearAlmacenSesion()) {
   render(
@@ -48,7 +53,19 @@ describe('FEAT-03-T4 FRONT-05 recuperar contraseña', () => {
     await screen.findByText(/Al menos 10 caracteres/)
     expect(window.location.search).toBe('')
     expect(window.location.href).not.toContain('secreto-de-prueba')
-    window.history.replaceState(null, '', '/')
+  })
+
+  it('lleva el canal de una URL de entrada 5a al POST y limpia el parámetro', async () => {
+    const solicitarRecuperacion = vi.fn().mockResolvedValue(undefined)
+    window.history.replaceState(null, '', '/recuperar-contrasena?canal=MARKETPLACE')
+    renderizarConNavegador({ solicitarRecuperacion })
+    const user = userEvent.setup()
+    await user.type(screen.getByLabelText(/^Correo/), 'persona@g7.test')
+    await user.click(screen.getByRole('button', { name: 'Enviar enlace' }))
+
+    await screen.findByRole('status')
+    expect(solicitarRecuperacion).toHaveBeenCalledWith('persona@g7.test', 'MARKETPLACE')
+    expect(window.location.search).toBe('')
   })
 
   it('precarga el correo y enfoca Enviar enlace al llegar por contraseña caducada', async () => {
@@ -149,7 +166,7 @@ describe('FEAT-03-T4 FRONT-05 recuperar contraseña', () => {
     expect(screen.queryByLabelText(/^Contraseña nueva/)).toBeNull()
   })
 
-  it('422 marca reglas; éxito limpia la sesión y vuelve a login con aviso', async () => {
+  it('422 marca reglas; éxito limpia la sesión y deja volver al login con aviso', async () => {
     const almacen = crearAlmacenSesion()
     almacen.aceptar(sesionDe([]))
     const restablecerContrasena = vi.fn()
@@ -166,6 +183,46 @@ describe('FEAT-03-T4 FRONT-05 recuperar contraseña', () => {
     await user.click(screen.getByRole('button', { name: 'Guardar contraseña' }))
     expect(await screen.findByText('Tu contraseña se actualizó. Ya puedes iniciar sesión.')).toBeTruthy()
     expect(almacen.estado().tipo).toBe('sin-sesion')
+    await user.click(screen.getByRole('button', { name: 'Iniciar sesión' }))
+    expect(await screen.findByText('Tu contraseña se actualizó. Ya puedes iniciar sesión.')).toBeTruthy()
+  })
+
+  it('al terminar desde Marketplace limpia token y canal y ofrece el login permitido', async () => {
+    const G1 = 'https://g1-marketplace-frontend.vercel.app/login'
+    vi.stubEnv('VITE_RETORNO_MARKETPLACE', G1)
+    const restablecerContrasena = vi.fn().mockResolvedValue(undefined)
+    window.history.replaceState(null, '', '/recuperar-contrasena?token=token-prueba&canal=MARKETPLACE')
+    renderizarConNavegador({ politicaPassword: vi.fn().mockResolvedValue(politica), restablecerContrasena })
+    await screen.findByText(/Al menos 10 caracteres/)
+    await waitFor(() => expect(window.location.search).toBe(''))
+    const user = userEvent.setup()
+    await user.type(screen.getByLabelText(/^Contraseña nueva/), 'Nueva-Segura-2026!')
+    await user.type(screen.getByLabelText(/^Repite la contraseña/), 'Nueva-Segura-2026!')
+    await user.click(screen.getByRole('button', { name: 'Guardar contraseña' }))
+
+    const retorno = await screen.findByRole('link', { name: 'Iniciar sesión' })
+    expect(retorno.getAttribute('href')).toBe(G1)
+    expect(retorno.getAttribute('href')).not.toContain('token-prueba')
+    expect(window.location.search).toBe('')
+  })
+
+  it('un canal manipulado nunca dirige fuera del login propio', async () => {
+    const restablecerContrasena = vi.fn().mockResolvedValue(undefined)
+    window.history.replaceState(null, '', '/recuperar-contrasena?token=token-prueba&canal=https%3A%2F%2Fotro-sitio.example')
+    renderizarConNavegador({ politicaPassword: vi.fn().mockResolvedValue(politica), restablecerContrasena })
+    await screen.findByText(/Al menos 10 caracteres/)
+    await waitFor(() => expect(window.location.search).toBe(''))
+    const user = userEvent.setup()
+    await user.type(screen.getByLabelText(/^Contraseña nueva/), 'Nueva-Segura-2026!')
+    await user.type(screen.getByLabelText(/^Repite la contraseña/), 'Nueva-Segura-2026!')
+    await user.click(screen.getByRole('button', { name: 'Guardar contraseña' }))
+
+    expect(await screen.findByRole('button', { name: 'Iniciar sesión' })).toBeTruthy()
+    expect(screen.queryByRole('link', { name: 'Iniciar sesión' })).toBeNull()
+    expect(window.location.search).toBe('')
+    await user.click(screen.getByRole('button', { name: 'Iniciar sesión' }))
+    await waitFor(() => expect(window.location.pathname).toBe('/login'))
+    expect(window.location.search).toBe('')
   })
 
   it('al abrir la ruta de recuperación sin token muestra el formulario para solicitar enlace', () => {

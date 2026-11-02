@@ -2,13 +2,15 @@ import { Alert, Button, TextInput } from '@mantine/core'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import type { Api } from '../../../shared/api'
 import { ApiError, mensajeDeError } from '../../../shared/errores'
+import type { CanalOrigen } from '../../../shared/retornoCanal'
 
 const CORREO_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-export function PedirEnlace({ api, correoInicial, enfocarEnviar }: {
+export function PedirEnlace({ api, correoInicial, enfocarEnviar, canal }: {
   api: Api
   correoInicial: string
   enfocarEnviar: boolean
+  canal: CanalOrigen
 }) {
   const [correo, setCorreo] = useState(correoInicial)
   const [errorCampo, setErrorCampo] = useState<string | null>(null)
@@ -37,7 +39,8 @@ export function PedirEnlace({ api, correoInicial, enfocarEnviar }: {
     setErrorCampo(null)
     setEnviando(true)
     try {
-      await api.solicitarRecuperacion(limpio)
+      if (canal === 'WEB') await api.solicitarRecuperacion(limpio)
+      else await api.solicitarRecuperacion(limpio, canal)
       setCorreo(limpio)
       setEnviado(true)
     } catch (error) {
