@@ -45,6 +45,7 @@ describe('FEAT-03-T4 FRONT-05 recuperar contraseña', () => {
     )
     expect(screen.getByRole('status').textContent).toContain('Vence en 30 minutos')
     expect(solicitarRecuperacion).toHaveBeenCalledWith('persona@g7.test')
+    expect(screen.getByRole('link', { name: 'Volver a iniciar sesión' }).getAttribute('href')).toBe('/login')
   })
 
   it('lee el token de la URL y lo retira mediante reemplazo del historial', async () => {
@@ -57,6 +58,7 @@ describe('FEAT-03-T4 FRONT-05 recuperar contraseña', () => {
 
   it('lleva el canal de una URL de entrada 5a al POST y limpia el parámetro', async () => {
     const solicitarRecuperacion = vi.fn().mockResolvedValue(undefined)
+    vi.stubEnv('VITE_RETORNO_MARKETPLACE', 'https://g1-marketplace-frontend.vercel.app/login')
     window.history.replaceState(null, '', '/recuperar-contrasena?canal=MARKETPLACE')
     renderizarConNavegador({ solicitarRecuperacion })
     const user = userEvent.setup()
@@ -66,6 +68,8 @@ describe('FEAT-03-T4 FRONT-05 recuperar contraseña', () => {
     await screen.findByRole('status')
     expect(solicitarRecuperacion).toHaveBeenCalledWith('persona@g7.test', 'MARKETPLACE')
     expect(window.location.search).toBe('')
+    expect(screen.getByRole('link', { name: 'Volver a iniciar sesión' }).getAttribute('href'))
+      .toBe('https://g1-marketplace-frontend.vercel.app/login')
   })
 
   it('precarga el correo y enfoca Enviar enlace al llegar por contraseña caducada', async () => {
