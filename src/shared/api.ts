@@ -1,6 +1,7 @@
 // Instancia única del cliente y endpoints del contrato que consume la SPA en H3.
 import { crearAlmacenSesion } from './almacenSesion'
 import { crearClienteHttp, type ClienteHttp } from './http'
+import type { CanalOrigen } from './retornoCanal'
 import type {
   CodigoRol,
   CambioMfaEnviado,
@@ -80,8 +81,10 @@ export function crearApi(cliente: ClienteHttp) {
       cliente.request<void>('/auth/desbloquear', { method: 'POST', body: { token }, autenticada: false }),
     cambiarContrasena: (contrasenaActual: string, nuevaContrasena: string) =>
       cliente.request<void>('/password/cambiar', { method: 'POST', body: { contrasenaActual, nuevaContrasena } }),
-    solicitarRecuperacion: (correo: string) =>
-      cliente.request<void>('/password/recuperar', { method: 'POST', body: { correo }, autenticada: false }),
+    solicitarRecuperacion: (correo: string, canalOrigen?: CanalOrigen) =>
+      cliente.request<void>('/password/recuperar', {
+        method: 'POST', body: { correo, ...(canalOrigen ? { canalOrigen } : {}) }, autenticada: false,
+      }),
     restablecerContrasena: (token: string, nuevaContrasena: string) =>
       cliente.request<void>('/password/restablecer', {
         method: 'POST', body: { token, nuevaContrasena }, autenticada: false,
