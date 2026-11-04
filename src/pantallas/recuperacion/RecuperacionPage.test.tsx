@@ -55,10 +55,13 @@ describe('FEAT-03-T4 FRONT-05 recuperar contraseña', () => {
     expect(window.location.href).not.toContain('secreto-de-prueba')
   })
 
-  it('lleva el canal de una URL de entrada 5a al POST y limpia el parámetro', async () => {
+  it('conserva el retorno MARKETPLACE antes y después de enviar el enlace y limpia el canal', async () => {
+    vi.stubEnv('VITE_RETORNO_MARKETPLACE', 'https://g1-marketplace-frontend.vercel.app/login')
     const solicitarRecuperacion = vi.fn().mockResolvedValue(undefined)
     window.history.replaceState(null, '', '/recuperar-contrasena?canal=MARKETPLACE')
     renderizarConNavegador({ solicitarRecuperacion })
+    expect(screen.getByRole('link', { name: 'Volver a iniciar sesión' }).getAttribute('href'))
+      .toBe('https://g1-marketplace-frontend.vercel.app/login')
     const user = userEvent.setup()
     await user.type(screen.getByLabelText(/^Correo/), 'persona@g7.test')
     await user.click(screen.getByRole('button', { name: 'Enviar enlace' }))
@@ -66,6 +69,27 @@ describe('FEAT-03-T4 FRONT-05 recuperar contraseña', () => {
     await screen.findByRole('status')
     expect(solicitarRecuperacion).toHaveBeenCalledWith('persona@g7.test', 'MARKETPLACE')
     expect(window.location.search).toBe('')
+    expect(screen.getByRole('link', { name: 'Volver a iniciar sesión' }).getAttribute('href'))
+      .toBe('https://g1-marketplace-frontend.vercel.app/login')
+  })
+
+  it.each([
+    { canal: 'WEB', retorno: 'https://g1-marketplace-frontend.vercel.app/login' },
+    { canal: 'https://otro-sitio.example', retorno: 'https://g1-marketplace-frontend.vercel.app/login' },
+    { canal: 'MARKETPLACE', retorno: '' },
+    { canal: 'MARKETPLACE', retorno: 'http://otro-sitio.example/login' },
+  ])('mantiene el login propio tras enviar para canal=$canal y retorno=$retorno', async ({ canal, retorno }) => {
+    vi.stubEnv('VITE_RETORNO_MARKETPLACE', retorno)
+    window.history.replaceState(null, '', '/recuperar-contrasena?canal=' + encodeURIComponent(canal))
+    renderizarConNavegador({ solicitarRecuperacion: vi.fn().mockResolvedValue(undefined) })
+    const user = userEvent.setup()
+    await user.type(screen.getByLabelText(/^Correo/), 'persona@g7.test')
+    await user.click(screen.getByRole('button', { name: 'Enviar enlace' }))
+    await screen.findByRole('status')
+    expect(screen.getByRole('link', { name: 'Volver a iniciar sesión' }).getAttribute('href')).toBe('/login')
+    expect(window.location.search).toBe('')
+    await user.click(screen.getByRole('link', { name: 'Volver a iniciar sesión' }))
+    expect(await screen.findByRole('button', { name: 'Iniciar sesión' })).toBeTruthy()
   })
 
   it('precarga el correo y enfoca Enviar enlace al llegar por contraseña caducada', async () => {

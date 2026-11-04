@@ -2,7 +2,7 @@ import { Anchor, Container, Paper, Stack, Title } from '@mantine/core'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import type { Api } from '../../shared/api'
-import { canalDelEnlace, type CanalOrigen } from '../../shared/retornoCanal'
+import { canalDelEnlace, retornoDelCanal, type CanalOrigen } from '../../shared/retornoCanal'
 import { DefinirContrasena } from './componentes/DefinirContrasena'
 import { PedirEnlace } from './componentes/PedirEnlace'
 
@@ -25,6 +25,7 @@ export function RecuperacionPage({ api }: { api: Api }) {
     setEnlaceRetirado(true)
   }, [location.hash, location.pathname, location.search, location.state, navegar])
 
+  const retorno = retornoDelCanal(canal)
   const estado = location.state as EstadoLlegada | null
   return (
     <Container size="xs" py="xl">
@@ -41,11 +42,13 @@ export function RecuperacionPage({ api }: { api: Api }) {
               canal={canal}
             />
           )}
-          {!token && (
+          {!token && (retorno ? (
+            <Anchor href={retorno} size="sm">Volver a iniciar sesión</Anchor>
+          ) : (
             <Anchor component={Link} to="/login" size="sm">
               Volver a iniciar sesión
             </Anchor>
-          )}
+          ))}
         </Stack>
       </Paper>
     </Container>
