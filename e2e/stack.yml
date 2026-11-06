@@ -1,0 +1,33 @@
+# Stack auxiliar de pruebas E2E (FEAT-12-T3): PostgreSQL y receptor de correo.
+# Uso: docker compose -f e2e/stack.yml up -d
+# El backend y la SPA corren en el host; ver e2e/README.md.
+# Ningún valor de este fichero es un secreto real: es un entorno desechable local.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: g7-e2e-postgres
+    environment:
+      POSTGRES_DB: ${E2E_DB:-auth_e2e}
+      POSTGRES_USER: ${E2E_DB_USUARIO:-auth_e2e}
+      POSTGRES_PASSWORD: ${E2E_DB_CLAVE:-auth_e2e}
+    ports:
+      - "${E2E_DB_PUERTO:-5432}:5432"
+    volumes:
+      - e2e_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${E2E_DB_USUARIO:-auth_e2e} -d ${E2E_DB:-auth_e2e}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # SMTP 1025 para el backend (SPRING_MAIL_HOST/PORT); API 8025 que lee la
+  # suite para el código OTP del login de administración.
+  correo:
+    image: axllent/mailpit:v1.32
+    container_name: g7-e2e-correo
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+volumes:
+  e2e_postgres:
