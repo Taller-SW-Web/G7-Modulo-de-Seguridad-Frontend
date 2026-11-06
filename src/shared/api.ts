@@ -1,15 +1,20 @@
 // Instancia única del cliente y endpoints del contrato que consume la SPA en H3.
 import { crearAlmacenSesion } from './almacenSesion'
 import { crearClienteHttp, type ClienteHttp } from './http'
+import type { CanalOrigen } from './retornoCanal'
 import type {
   CodigoRol,
   CambioMfaEnviado,
+  CuentaRegistrada,
+  Direccion,
   DesafioMfa,
   EstadoCuenta,
+  NuevaDireccion,
   OtpEnviado,
   PaginaActividad,
   PaginaUsuarios,
   PoliticaPassword,
+  RegistroCliente,
   SesionIniciada,
   Usuario,
 } from './tipos'
@@ -66,12 +71,20 @@ export function crearApi(cliente: ClienteHttp) {
         body: { challengeToken, codigo },
         autenticada: false,
       }),
+    registrar: (datos: RegistroCliente) =>
+      cliente.request<CuentaRegistrada>('/auth/registro', { method: 'POST', body: datos, autenticada: false }),
+    verificarCorreo: (token: string) =>
+      cliente.request<void>('/auth/verificar-correo', { method: 'POST', body: { token }, autenticada: false }),
+    reenviarVerificacion: (correo: string) =>
+      cliente.request<void>('/auth/verificar-correo/reenviar', { method: 'POST', body: { correo }, autenticada: false }),
     desbloquear: (token: string) =>
       cliente.request<void>('/auth/desbloquear', { method: 'POST', body: { token }, autenticada: false }),
     cambiarContrasena: (contrasenaActual: string, nuevaContrasena: string) =>
       cliente.request<void>('/password/cambiar', { method: 'POST', body: { contrasenaActual, nuevaContrasena } }),
-    solicitarRecuperacion: (correo: string) =>
-      cliente.request<void>('/password/recuperar', { method: 'POST', body: { correo }, autenticada: false }),
+    solicitarRecuperacion: (correo: string, canalOrigen?: CanalOrigen) =>
+      cliente.request<void>('/password/recuperar', {
+        method: 'POST', body: { correo, ...(canalOrigen ? { canalOrigen } : {}) }, autenticada: false,
+      }),
     restablecerContrasena: (token: string, nuevaContrasena: string) =>
       cliente.request<void>('/password/restablecer', {
         method: 'POST', body: { token, nuevaContrasena }, autenticada: false,
@@ -80,6 +93,15 @@ export function crearApi(cliente: ClienteHttp) {
       cliente.request<PaginaActividad>(`/auth/me/actividad?pagina=${pagina}&tamano=20`, { signal }),
     actualizarPerfilPropio: (id: string, cambios: { nombres?: string; apellidos?: string; celular?: string }) =>
       cliente.request<Usuario>(`/usuarios/${encodeURIComponent(id)}/atributos`, { method: 'PATCH', body: cambios }),
+    solicitarCambioCorreo: (id: string, nuevoCorreo: string, contrasenaActual: string) =>
+      cliente.request<void>(`/usuarios/${encodeURIComponent(id)}/correo`, {
+        method: 'POST',
+        body: { nuevoCorreo, contrasenaActual },
+      }),
+    listarDirecciones: (id: string, signal?: AbortSignal) =>
+      cliente.request<{ direcciones: Direccion[] }>(`/usuarios/${encodeURIComponent(id)}/direcciones`, { signal }),
+    crearDireccion: (id: string, direccion: NuevaDireccion) =>
+      cliente.request<Direccion>(`/usuarios/${encodeURIComponent(id)}/direcciones`, { method: 'POST', body: direccion }),
     perfilPropio: (signal?: AbortSignal) => cliente.request<Usuario>('/auth/me', { signal }),
     politicaPassword: (signal?: AbortSignal) =>
       cliente.request<PoliticaPassword>('/password/politica', { autenticada: false, signal }),

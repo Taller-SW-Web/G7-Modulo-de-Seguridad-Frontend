@@ -17,7 +17,7 @@ describe('FRONT-06 Mi cuenta (lectura)', () => {
       id: 'x', nombres: 'Ana', apellidos: 'Real', nombreCompleto: 'Ana Real', correo: 'ana.real@g7.test',
       estado: 'ACTIVO', correoVerificado: true, roles: ['CLIENTE', 'VENDEDOR'], mfaHabilitado: true,
     })
-    renderizar({ perfilPropio }, '/mi-cuenta', conSesion())
+    renderizar({ perfilPropio, listarDirecciones: vi.fn().mockResolvedValue({ direcciones: [] }) }, '/mi-cuenta', conSesion())
     expect(await screen.findByText('Ana Real')).toBeTruthy()
     expect(screen.getByText('Vendedor')).toBeTruthy()
     expect(screen.getByText('Verificado')).toBeTruthy()

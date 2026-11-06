@@ -3,6 +3,8 @@
 interface ImportMetaEnv {
   /** URL base del backend G7 con /api/v1. Pública: nunca secretos con VITE_. */
   readonly VITE_API_BASE_URL?: string
+  /** Login de Marketplace (G1) al que vuelven MARKETPLACE y RETAIL tras verificar el correo (FRONT-03). Pública. */
+  readonly VITE_RETORNO_MARKETPLACE?: string
 }
 
 interface ImportMeta {

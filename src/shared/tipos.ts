@@ -45,6 +45,23 @@ export interface UsuarioSesion {
   roles: CodigoRol[]
 }
 
+/** Cuerpo de `POST /auth/registro` (SPEC-01). La SPA siempre registra por `WEB`. */
+export interface RegistroCliente {
+  correo: string
+  contrasena: string
+  nombres: string
+  apellidos: string
+  celular: string
+  aceptaTerminos: true
+  canalOrigen: 'WEB'
+}
+
+/** `201` del registro: la cuenta queda pendiente y sin sesión (RF-01.7). */
+export interface CuentaRegistrada {
+  id: string
+  estado: 'PENDIENTE_VERIFICACION'
+}
+
 export interface SesionIniciada {
   accessToken: string
   refreshToken: string
@@ -97,7 +114,34 @@ export interface Usuario {
   roles: CodigoRol[]
   tipoDocumento?: 'DNI' | 'CE' | 'PASAPORTE'
   documentoEnmascarado?: string
+  /** Atributos de rol: el backend los envía solo si el rol aplica (null = aún sin registrar). */
+  fechaNacimiento?: string | null
+  codigoVendedor?: string | null
+  tienda?: string | null
+  fechaIngreso?: string | null
   bloqueo?: Bloqueo | null
+}
+
+/** Dirección de entrega del titular (SPEC-16, RF-16.5). */
+export interface Direccion {
+  id: string
+  etiqueta?: string | null
+  departamento: string
+  provincia: string
+  distrito: string
+  direccion: string
+  referencia?: string | null
+  esPredeterminada: boolean
+}
+
+export interface NuevaDireccion {
+  etiqueta?: string
+  departamento: string
+  provincia: string
+  distrito: string
+  direccion: string
+  referencia?: string
+  esPredeterminada: boolean
 }
 
 export interface PaginaUsuarios {
