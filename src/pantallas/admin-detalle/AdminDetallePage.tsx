@@ -1,5 +1,6 @@
 // FRONT-08 — detalle administrativo (EP-01-T006). Carga /usuarios/{id} una vez y entrega
 // el DTO a los bloques; SeccionRoles (EP-05-T005) pide recargar tras un cambio.
+// SeccionAtributosVendedor (FEAT-04-T6) solo aparece si la cuenta tiene VENDEDOR.
 import { Alert, Anchor, Badge, Button, Container, Group, Paper, SimpleGrid, Skeleton, Stack, Text, Title } from '@mantine/core'
 import { IconArrowLeft } from '@tabler/icons-react'
 import { useCallback, useEffect, useState } from 'react'
@@ -10,6 +11,7 @@ import { COLOR_ESTADO, textoEstado, textoVencimiento } from '../../shared/etique
 import type { Usuario } from '../../shared/tipos'
 import { SeccionRoles } from './SeccionRoles'
 import { AccionesBloqueo } from './AccionesBloqueo'
+import { SeccionAtributosVendedor } from './SeccionAtributosVendedor'
 
 type Carga = { tipo: 'cargando' } | { tipo: 'listo'; usuario: Usuario } | { tipo: 'error'; error: unknown }
 
@@ -147,6 +149,7 @@ export function AdminDetallePage({ api }: { api: Api }) {
           </Stack>
         </Paper>
 
+        <SeccionAtributosVendedor key={`vendedor-${usuario.id}`} api={api} usuario={usuario} />
         <SeccionRoles api={api} usuario={usuario} onActualizado={recargar} />
         <AccionesBloqueo key={usuario.id} api={api} usuario={usuario} onActualizado={recargar} />
       </Stack>
