@@ -2,7 +2,8 @@
 // VENDEDOR. Edita código, tienda y fecha de ingreso con PATCH /usuarios/{id}/atributos enviando
 // solo lo que cambió; un campo vaciado viaja como null. Ocultar el botón no autoriza: el backend
 // revalida atributos.editar.
-// H-01: GET /usuarios/{id} aún no devuelve estos campos; se muestran los de la respuesta del PATCH.
+// H-01: GET /usuarios/{id} aún no devuelve estos campos. Mientras falten en la respuesta se
+// muestran como «No disponible» con un aviso (no como vacíos); tras guardar se usan los del PATCH.
 import { Alert, Button, Group, Paper, SimpleGrid, Stack, Text, TextInput, Title } from '@mantine/core'
 import { notifications } from '@mantine/notifications'
 import { IconPencil } from '@tabler/icons-react'
@@ -15,6 +16,11 @@ import type { Usuario } from '../../shared/tipos'
 import { validarAtributosVendedor, type CamposVendedor } from './validarAtributosVendedor'
 
 const CLAVES = ['codigoVendedor', 'tienda', 'fechaIngreso'] as const
+
+/** ¿La respuesta trae los atributos de vendedor? Ausentes ≠ vacíos (null). */
+function trae(u: Usuario): boolean {
+  return CLAVES.some((clave) => clave in u)
+}
 
 function camposDe(u: Pick<Usuario, (typeof CLAVES)[number]>): CamposVendedor {
   return { codigoVendedor: u.codigoVendedor ?? '', tienda: u.tienda ?? '', fechaIngreso: u.fechaIngreso ?? '' }
@@ -42,6 +48,7 @@ function Dato({ etiqueta, valor }: { etiqueta: string; valor: string }) {
 export function SeccionAtributosVendedor({ api, usuario }: { api: Api; usuario: Usuario }) {
   const { tienePermiso } = useSesion()
   const [guardados, setGuardados] = useState<CamposVendedor>(() => camposDe(usuario))
+  const [conocidos, setConocidos] = useState(() => trae(usuario))
   const [campos, setCampos] = useState<CamposVendedor>(guardados)
   const [editando, setEditando] = useState(false)
   const [errores, setErrores] = useState<Partial<Record<keyof CamposVendedor, string>>>({})
@@ -78,6 +85,7 @@ export function SeccionAtributosVendedor({ api, usuario }: { api: Api; usuario: 
     try {
       const actualizado = await api.actualizarAtributosVendedor(usuario.id, cambios)
       setGuardados(camposDe(actualizado))
+      setConocidos(true)
       notifications.show({ color: 'green', message: 'Guardamos los atributos de vendedor.' })
       setEditando(false)
     } catch (err) {
@@ -106,11 +114,18 @@ export function SeccionAtributosVendedor({ api, usuario }: { api: Api; usuario: 
           )}
         </Group>
 
+        {!conocidos && (
+          <Alert color="yellow" variant="light">
+            La consulta de la cuenta todavía no incluye estos datos, así que no podemos mostrar los valores
+            actuales. «No disponible» no significa que estén vacíos.{puedeEditar && ' Solo se guardan los campos que escribas.'}
+          </Alert>
+        )}
+
         {!editando && (
           <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
-            <Dato etiqueta="Código de vendedor" valor={guardados.codigoVendedor} />
-            <Dato etiqueta="Tienda" valor={guardados.tienda} />
-            <Dato etiqueta="Fecha de ingreso" valor={guardados.fechaIngreso} />
+            <Dato etiqueta="Código de vendedor" valor={conocidos ? guardados.codigoVendedor : 'No disponible'} />
+            <Dato etiqueta="Tienda" valor={conocidos ? guardados.tienda : 'No disponible'} />
+            <Dato etiqueta="Fecha de ingreso" valor={conocidos ? guardados.fechaIngreso : 'No disponible'} />
           </SimpleGrid>
         )}
 

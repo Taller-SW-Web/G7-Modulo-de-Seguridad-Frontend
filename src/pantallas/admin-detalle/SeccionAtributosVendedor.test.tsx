@@ -41,6 +41,32 @@ describe('FEAT-04-T6 atributos de vendedor', () => {
     expect(within(seccion).queryByRole('button', { name: 'Editar atributos' })).toBeNull()
   })
 
+  it('si la consulta no trae los atributos avisa en vez de mostrarlos vacíos, y tras guardar muestra los reales', async () => {
+    const actualizarAtributosVendedor = vi.fn().mockResolvedValue({
+      ...vendedor, codigoVendedor: null, tienda: 'Centro', fechaIngreso: null })
+    renderizar({ obtenerUsuario: vi.fn().mockResolvedValue(vendedor), actualizarAtributosVendedor },
+      `/admin/usuarios/${id}`, sesion())
+    const seccion = await screen.findByRole('region', { name: 'Atributos de vendedor' })
+    expect(within(seccion).getByText(/no significa que estén vacíos/)).toBeTruthy()
+    expect(within(seccion).getAllByText('No disponible')).toHaveLength(3)
+    const user = userEvent.setup()
+    await user.click(within(seccion).getByRole('button', { name: 'Editar atributos' }))
+    await user.type(within(seccion).getByLabelText('Tienda'), 'Centro')
+    await user.click(within(seccion).getByRole('button', { name: 'Guardar' }))
+    expect(actualizarAtributosVendedor).toHaveBeenCalledWith(id, { tienda: 'Centro' })
+    expect(await within(seccion).findByText('Centro')).toBeTruthy()
+    expect(within(seccion).queryByText(/no significa que estén vacíos/)).toBeNull()
+    expect(within(seccion).queryByText('No disponible')).toBeNull()
+  })
+
+  it('con los atributos en la consulta no muestra el aviso', async () => {
+    renderizar({ obtenerUsuario: vi.fn().mockResolvedValue({ ...vendedor, codigoVendedor: 'VEND-1', tienda: null,
+      fechaIngreso: null }) }, `/admin/usuarios/${id}`, sesion())
+    const seccion = await screen.findByRole('region', { name: 'Atributos de vendedor' })
+    expect(within(seccion).getByText('VEND-1')).toBeTruthy()
+    expect(within(seccion).queryByText(/no significa que estén vacíos/)).toBeNull()
+  })
+
   it('envía solo lo que cambió y muestra lo que devuelve el servidor', async () => {
     const actualizarAtributosVendedor = vi.fn().mockResolvedValue({
       ...vendedor, codigoVendedor: 'VEND-1042', tienda: 'TIENDA-MIRAFLORES', fechaIngreso: '2026-03-01' })
