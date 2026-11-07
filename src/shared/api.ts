@@ -93,6 +93,11 @@ export function crearApi(cliente: ClienteHttp) {
       cliente.request<PaginaActividad>(`/auth/me/actividad?pagina=${pagina}&tamano=20`, { signal }),
     actualizarPerfilPropio: (id: string, cambios: { nombres?: string; apellidos?: string; celular?: string }) =>
       cliente.request<Usuario>(`/usuarios/${encodeURIComponent(id)}/atributos`, { method: 'PATCH', body: cambios }),
+    // FEAT-04-T6: edición administrativa (atributos.editar). null deja el dato sin registrar.
+    actualizarAtributosVendedor: (
+      id: string,
+      cambios: { codigoVendedor?: string | null; tienda?: string | null; fechaIngreso?: string | null },
+    ) => cliente.request<Usuario>(`/usuarios/${encodeURIComponent(id)}/atributos`, { method: 'PATCH', body: cambios }),
     solicitarCambioCorreo: (id: string, nuevoCorreo: string, contrasenaActual: string) =>
       cliente.request<void>(`/usuarios/${encodeURIComponent(id)}/correo`, {
         method: 'POST',
