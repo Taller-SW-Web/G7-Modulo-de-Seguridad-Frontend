@@ -51,6 +51,20 @@ describe('FEAT-02 baja y reactivación en el detalle (FRONT-08)', () => {
     expect(reactivarUsuario).toHaveBeenCalledWith(id)
   })
 
+  it('una cuenta sin correo verificado avisa que quedará pendiente (SPEC-04 ESC-04.5)', async () => {
+    const user = userEvent.setup()
+    const obtenerUsuario = vi.fn().mockResolvedValueOnce({ ...cuenta, estado: 'INACTIVO', correoVerificado: false })
+      .mockResolvedValue({ ...cuenta, estado: 'PENDIENTE_VERIFICACION', correoVerificado: false })
+    const reactivarUsuario = vi.fn().mockResolvedValue(undefined)
+    renderizar({ obtenerUsuario, reactivarUsuario }, `/admin/usuarios/${id}`, sesion())
+
+    await user.click(await screen.findByRole('button', { name: 'Reactivar' }))
+    expect(await screen.findByText('Volverá a quedar pendiente de verificar su correo, con los mismos datos y roles. Tendrá que verificarlo antes de iniciar sesión.')).toBeTruthy()
+    expect(screen.queryByText(/Volverá a estar activa/)).toBeNull()
+    await user.click(await confirmacion('Reactivar'))
+    expect(await screen.findByText('Cuenta reactivada; queda pendiente de verificar su correo.')).toBeTruthy()
+  })
+
   it('ofrece cada acción solo en su estado y con su permiso', async () => {
     renderizar({ obtenerUsuario: vi.fn().mockResolvedValue({ ...cuenta, estado: 'PENDIENTE_VERIFICACION' }) },
       `/admin/usuarios/${id}`, sesion(['usuario.ver', 'usuario.desactivar']))

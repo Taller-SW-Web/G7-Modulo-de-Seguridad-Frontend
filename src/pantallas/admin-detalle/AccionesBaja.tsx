@@ -10,7 +10,9 @@ import { useSesion } from '../../shared/sesion'
 
 type Accion = 'baja' | 'reactivar'
 
-const TEXTOS: Record<Accion, { titulo: string; cuerpo: string; boton: string; hecho: string }> = {
+type Textos = { titulo: string; cuerpo: string; boton: string; hecho: string }
+
+const TEXTOS: Record<Accion, Textos> = {
   baja: {
     titulo: 'Dar de baja la cuenta de',
     cuerpo: 'La cuenta quedará inactiva y se cerrarán sus sesiones. No se borra nada: puedes reactivarla después.',
@@ -23,6 +25,13 @@ const TEXTOS: Record<Accion, { titulo: string; cuerpo: string; boton: string; he
     boton: 'Reactivar',
     hecho: 'Cuenta reactivada.',
   },
+}
+
+/** SPEC-04 ESC-04.5: sin correo verificado, reactivar la deja pendiente de verificación, no activa. */
+const REACTIVAR_PENDIENTE: Textos = {
+  ...TEXTOS.reactivar,
+  cuerpo: 'Volverá a quedar pendiente de verificar su correo, con los mismos datos y roles. Tendrá que verificarlo antes de iniciar sesión.',
+  hecho: 'Cuenta reactivada; queda pendiente de verificar su correo.',
 }
 
 export function AccionesBaja({ api, usuario, onActualizado }: { api: Api; usuario: Usuario; onActualizado: () => void }) {
@@ -38,6 +47,9 @@ export function AccionesBaja({ api, usuario, onActualizado }: { api: Api; usuari
   const puedeBaja = tienePermiso('usuario.desactivar') && !propia && usuario.estado !== 'INACTIVO'
   const puedeReactivar = tienePermiso('usuario.reactivar') && usuario.estado === 'INACTIVO'
 
+  function textosDe(tipo: Accion): Textos {
+    return tipo === 'reactivar' && !usuario.correoVerificado ? REACTIVAR_PENDIENTE : TEXTOS[tipo]
+  }
   function abrir(tipo: Accion) { setAccion(tipo); setError(''); setAviso('') }
   function cerrar() { if (!enVuelo.current) { setAccion(null); setError('') } }
   async function consultar() {
@@ -55,7 +67,7 @@ export function AccionesBaja({ api, usuario, onActualizado }: { api: Api; usuari
     try {
       if (accion === 'baja') await api.darDeBajaUsuario(usuario.id)
       else await api.reactivarUsuario(usuario.id)
-      setAviso(TEXTOS[accion].hecho); setAccion(null); onActualizado()
+      setAviso(textosDe(accion).hecho); setAccion(null); onActualizado()
     } catch (e) {
       if (e instanceof RedError) {
         setAccion(null); setIncierta(true); setAviso('Resultado no confirmado. Consulta el estado antes de volver a actuar.')
@@ -66,7 +78,7 @@ export function AccionesBaja({ api, usuario, onActualizado }: { api: Api; usuari
   }
 
   if (!puedeBaja && !puedeReactivar && !aviso && !incierta) return null
-  const textos = accion ? TEXTOS[accion] : null
+  const textos = accion ? textosDe(accion) : null
   return <Stack>
     {aviso && <Alert role="status">{aviso}</Alert>}
     {incierta ? <Button disabled={ocupada} loading={ocupada} onClick={() => void consultar()}>Consultar estado</Button> : <Group>
