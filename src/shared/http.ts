@@ -3,7 +3,7 @@
 // 401 TOKEN_INVALIDO, como mucho una repetición de la petición original.
 import type { AlmacenSesion } from './almacenSesion'
 import { ApiError, RedError } from './errores'
-import { leerClaims } from './jwt'
+import { FORMATO_ACCESO } from './formatoAcceso'
 import type { Problem, SesionIniciada } from './tipos'
 
 export interface OpcionesPeticion {
@@ -83,7 +83,9 @@ export function crearClienteHttp(
     const generacion = almacen.generacion()
     renovacionEnVuelo = (async () => {
       try {
-        const respuesta = await enviar('/auth/refresh', { method: 'POST', body: { refreshToken: tokens.refreshToken } }, null)
+        const respuesta = await enviar('/auth/refresh', {
+          method: 'POST', body: { refreshToken: tokens.refreshToken, formatoAcceso: FORMATO_ACCESO },
+        }, null)
         if (!respuesta.ok) {
           if (respuesta.status === 401 && almacen.generacion() === generacion) almacen.terminar('vencida')
           return false
@@ -107,8 +109,7 @@ export function crearClienteHttp(
       const generacion = almacen.generacion()
       const tokens = almacen.tokens()
       if (autenticada && opciones.renovarAntesDeEnviar && tokens) {
-        const exp = leerClaims(tokens.accessToken).exp
-        if (exp === null || exp * 1000 - Date.now() <= 60_000) {
+        if (tokens.expiraEn - Date.now() <= 60_000) {
           if (!(await renovar())) {
             if (almacen.generacion() !== generacion) throw new DOMException('Sesión cerrada', 'AbortError')
             throw new RedError() // No se envió la mutación; se conserva la sesión si solo falló la red.

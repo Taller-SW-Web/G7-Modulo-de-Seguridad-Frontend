@@ -20,7 +20,7 @@ export function sesionDe(permisos: string[], roles: SesionIniciada['usuario']['r
     refreshToken: 'refresh-1',
     tokenType: 'Bearer',
     expiresIn: 900,
-    usuario: { id: '00000000-0000-4000-8000-00000000f00a', nombreCompleto: 'Ana Prueba', correo: 'ana@g7.test', roles },
+    usuario: { id: '00000000-0000-4000-8000-00000000f00a', nombreCompleto: 'Ana Prueba', correo: 'ana@g7.test', roles, permisos },
   }
 }
 

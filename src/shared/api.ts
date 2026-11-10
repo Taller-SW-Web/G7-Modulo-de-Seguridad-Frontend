@@ -1,5 +1,6 @@
 // Instancia única del cliente y endpoints del contrato que consume la SPA en H3.
 import { crearAlmacenSesion } from './almacenSesion'
+import { FORMATO_ACCESO } from './formatoAcceso'
 import { crearClienteHttp, type ClienteHttp } from './http'
 import type { CanalOrigen } from './retornoCanal'
 import type {
@@ -54,7 +55,7 @@ export function crearApi(cliente: ClienteHttp) {
     login: (correo: string, contrasena: string) =>
       cliente.request<SesionIniciada | DesafioMfa>('/auth/login', {
         method: 'POST',
-        body: { correo, contrasena },
+        body: { correo, contrasena, formatoAcceso: FORMATO_ACCESO },
         autenticada: false,
       }),
     logout: (refreshToken: string) =>
@@ -68,7 +69,7 @@ export function crearApi(cliente: ClienteHttp) {
     otpVerificar: (challengeToken: string, codigo: string) =>
       cliente.request<SesionIniciada>('/auth/otp/verificar', {
         method: 'POST',
-        body: { challengeToken, codigo },
+        body: { challengeToken, codigo, formatoAcceso: FORMATO_ACCESO },
         autenticada: false,
       }),
     registrar: (datos: RegistroCliente) =>

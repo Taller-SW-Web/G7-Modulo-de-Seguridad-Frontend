@@ -7,10 +7,12 @@ import { sesionDe } from '../test/renderizar'
 
 const BASE = 'https://g7.test/api/v1'
 const enviado = { mfaChangeToken: 'cambio-test', canal: 'EMAIL', destinoEnmascarado: 'a***@test', expiraEn: 300, cambioExpiraEn: 600 }
+// `null`: access sin exp legible (como el cifrado de FEAT-16) y ya vencido según `expiresIn`.
 function sesion(segundos: number | null) {
   const original = sesionDe([])
   const claims = segundos === null ? {} : { exp: Math.floor(Date.now() / 1000) + segundos }
-  return { ...original, accessToken: `eyJhbGciOiJSUzI1NiJ9.${btoa(JSON.stringify(claims)).replace(/=+$/, '')}.firma` }
+  const accessToken = `eyJhbGciOiJSUzI1NiJ9.${btoa(JSON.stringify(claims)).replace(/=+$/, '')}.firma`
+  return { ...original, accessToken, ...(segundos === null ? { expiresIn: 0 } : {}) }
 }
 function json(status: number, body?: unknown) {
   return new Response(body === undefined ? null : JSON.stringify(body), { status })
