@@ -43,6 +43,8 @@ export interface UsuarioSesion {
   nombreCompleto: string
   correo: string
   roles: CodigoRol[]
+  /** Permisos efectivos del access (FEAT-16); el access cifrado no se puede leer. */
+  permisos?: string[]
 }
 
 /** Cuerpo de `POST /auth/registro` (SPEC-01). La SPA siempre registra por `WEB`. */

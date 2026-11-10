@@ -14,6 +14,23 @@ export type EstadoSesion =
 interface Tokens {
   accessToken: string
   refreshToken: string
+  /** Vencimiento del access en milisegundos epoch. */
+  expiraEn: number
+}
+
+/**
+ * Permisos de la sesión (FEAT-16). El backend los entrega en `usuario.permisos`
+ * porque el access cifrado no se puede leer; si una respuesta antigua no los trae,
+ * se leen del token sin verificar, solo para mostrar u ocultar opciones.
+ */
+export function permisosDe(sesion: SesionIniciada): string[] {
+  return sesion.usuario.permisos ?? leerClaims(sesion.accessToken).permisos
+}
+
+/** Del token si se puede leer; si no (access cifrado), a partir de `expiresIn`. */
+function vencimiento(sesion: SesionIniciada): number {
+  const exp = leerClaims(sesion.accessToken).exp
+  return exp !== null ? exp * 1000 : Date.now() + sesion.expiresIn * 1000
 }
 
 export interface AlmacenSesion {
@@ -41,11 +58,11 @@ export function crearAlmacenSesion(): AlmacenSesion {
       return () => oyentes.delete(oyente)
     },
     aceptar(sesion) {
-      tokens = { accessToken: sesion.accessToken, refreshToken: sesion.refreshToken }
+      tokens = { accessToken: sesion.accessToken, refreshToken: sesion.refreshToken, expiraEn: vencimiento(sesion) }
       estado = {
         tipo: 'activa',
         usuario: sesion.usuario,
-        permisos: Object.freeze(leerClaims(sesion.accessToken).permisos),
+        permisos: Object.freeze(permisosDe(sesion)),
       }
       avisar()
     },

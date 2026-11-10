@@ -6,7 +6,7 @@ import { Link, useLocation, useNavigate } from 'react-router'
 import type { Api } from '../../shared/api'
 import { destinoPorDefecto, volverSeguro } from '../../shared/navegacion'
 import { useSesion } from '../../shared/sesion'
-import { leerClaims } from '../../shared/jwt'
+import { permisosDe } from '../../shared/almacenSesion'
 import { guardarDesafio } from '../../shared/desafio'
 import { useLogin, validarCampos } from './useLogin'
 
@@ -45,7 +45,7 @@ export function LoginPage({ api }: { api: Api }) {
       case 'sesion': {
         aceptarSesion(resultado.sesion)
         const volver = volverSeguro(new URLSearchParams(search).get('volver'))
-        navegar(volver ?? destinoPorDefecto(leerClaims(resultado.sesion.accessToken).permisos), { replace: true })
+        navegar(volver ?? destinoPorDefecto(permisosDe(resultado.sesion)), { replace: true })
         return
       }
       case 'mfa':
