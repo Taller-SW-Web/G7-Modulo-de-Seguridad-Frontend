@@ -10,15 +10,16 @@ import { expect, type APIRequestContext, type Page } from '@playwright/test'
 export const CORREO_CLIENTE = process.env.E2E_CORREO_CLIENTE ?? 'cliente.a@fixtures.g7.test'
 export const CORREO_ADMIN = process.env.E2E_CORREO_ADMIN ?? 'admin@fixtures.g7.test'
 
-const API_CORREO = (process.env.E2E_CORREO_API ?? 'http://localhost:8025').replace(/\/+$/, '')
+const API_CORREO = (process.env.E2E_CORREO_API || 'http://localhost:8025').replace(/\/+$/, '')
 
 /**
- * Hay receptor de correo de pruebas si se declara `E2E_CORREO_API` o si la suite
+ * Hay receptor de correo de pruebas si `E2E_CORREO_API` tiene valor o si la suite
  * corre en local (sin `E2E_BASE_URL`), donde se usa el receptor por defecto.
  * Contra el despliegue de Render el correo es real y no hay receptor que leer.
+ * Un secreto de GitHub que no existe llega como cadena vacía: no cuenta como receptor.
  */
 export const HAY_RECEPTOR_CORREO =
-  process.env.E2E_CORREO_API !== undefined || process.env.E2E_BASE_URL === undefined
+  Boolean(process.env.E2E_CORREO_API) || process.env.E2E_BASE_URL === undefined
 
 /** Contraseña común de las fixtures: nunca en el repo; la define quien levanta el stack. */
 export function contrasenaDeFixtures(): string {
