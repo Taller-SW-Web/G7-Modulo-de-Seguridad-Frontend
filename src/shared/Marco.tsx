@@ -2,7 +2,7 @@
 import { AppShell, Button, Group, Text, ThemeIcon } from '@mantine/core'
 import { IconLogout, IconShieldLock } from '@tabler/icons-react'
 import { NavLink, Outlet, useNavigate } from 'react-router'
-import { PERMISO_VER_USUARIOS } from './navegacion'
+import { PERMISO_GESTIONAR_INTEGRACION, PERMISO_VER_USUARIOS } from './navegacion'
 import { useSesion } from './sesion'
 
 export function Marco() {
@@ -33,6 +33,11 @@ export function Marco() {
               {tienePermiso(PERMISO_VER_USUARIOS) && (
                 <Button component={NavLink} to="/admin/usuarios" variant="subtle" color="cloud" size="compact-sm">
                   Usuarios
+                </Button>
+              )}
+              {tienePermiso(PERMISO_GESTIONAR_INTEGRACION) && (
+                <Button component={NavLink} to="/admin/clientes-tecnicos" variant="subtle" color="cloud" size="compact-sm">
+                  Configuración
                 </Button>
               )}
             </Group>
