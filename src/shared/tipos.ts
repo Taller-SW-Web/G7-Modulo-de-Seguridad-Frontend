@@ -187,3 +187,27 @@ export interface PaginaActividad {
   tamano: number
   total: number
 }
+
+// FEAT-14 / SPEC-19: clientes técnicos (contrato v2). Nunca llega el hash; el
+// secreto solo viene en la respuesta del alta y de la rotación.
+export interface ScopeAsignado {
+  codigo: string
+  audiencia: string
+}
+
+export interface ClienteTecnico {
+  clientId: string
+  nombre: string | null
+  activo: boolean
+  scopes: ScopeAsignado[]
+}
+
+export interface ClienteTecnicoConSecreto extends ClienteTecnico {
+  clientSecret: string
+}
+
+export interface ScopeCatalogo {
+  codigo: string
+  audiencia: string
+  descripcion?: string | null
+}

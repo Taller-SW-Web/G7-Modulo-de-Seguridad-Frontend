@@ -3,6 +3,7 @@
 export const PERMISO_VER_USUARIOS = 'usuario.ver'
 export const PERMISO_ASIGNAR_ROL = 'rol.asignar'
 export const PERMISO_EDITAR_ATRIBUTOS = 'atributos.editar'
+export const PERMISO_GESTIONAR_INTEGRACION = 'integracion.gestionar'
 
 /** Administración si hay permiso; si no, Mi cuenta. */
 export function destinoPorDefecto(permisos: readonly string[]): string {
