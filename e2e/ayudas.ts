@@ -12,6 +12,14 @@ export const CORREO_ADMIN = process.env.E2E_CORREO_ADMIN ?? 'admin@fixtures.g7.t
 
 const API_CORREO = (process.env.E2E_CORREO_API ?? 'http://localhost:8025').replace(/\/+$/, '')
 
+/**
+ * Hay receptor de correo de pruebas si se declara `E2E_CORREO_API` o si la suite
+ * corre en local (sin `E2E_BASE_URL`), donde se usa el receptor por defecto.
+ * Contra el despliegue de Render el correo es real y no hay receptor que leer.
+ */
+export const HAY_RECEPTOR_CORREO =
+  process.env.E2E_CORREO_API !== undefined || process.env.E2E_BASE_URL === undefined
+
 /** Contraseña común de las fixtures: nunca en el repo; la define quien levanta el stack. */
 export function contrasenaDeFixtures(): string {
   const clave = process.env.E2E_CUENTAS_CLAVE

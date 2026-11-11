@@ -9,6 +9,7 @@ import {
   enviarInicioSesion,
   esperarCodigoOtp,
   esperarDestinoTrasSesion,
+  HAY_RECEPTOR_CORREO,
   idsDeCorreos,
   iniciarSesion,
   rellenarInicioSesion,
@@ -21,6 +22,9 @@ test('login cliente abre Mi cuenta', async ({ page }) => {
 })
 
 test('login admin completa el segundo factor con el código del receptor de correo', async ({ page, request }) => {
+  // Contra Render el OTP llega a un buzón real que la suite no puede leer. El
+  // segundo factor lo cubre el job «E2E Playwright en entorno aislado» del backend.
+  test.skip(!HAY_RECEPTOR_CORREO, 'Sin receptor de correo de pruebas (E2E_CORREO_API): se cubre en el E2E aislado.')
   test.setTimeout(120_000)
   const anteriores = await idsDeCorreos(request)
   await iniciarSesion(page, CORREO_ADMIN, contrasenaDeFixtures())

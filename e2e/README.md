@@ -78,6 +78,14 @@ API de Mailpit (`/api/v1/messages`, `/api/v1/message/{id}`).
 - El informe HTML queda en `playwright-report/` y las trazas de fallo en
   `test-results/` (ignorados por Git); la evidencia resumida se adjunta en
   `docs/evidencia/h4/FEAT-12.md`.
+- **Contra el despliegue** (`E2E_BASE_URL` definida y sin `E2E_CORREO_API`) el
+  caso de administración se omite: el OTP llega a un buzón real que la suite no
+  lee. Ese caso lo cubre el job «E2E Playwright en entorno aislado» del backend,
+  que levanta Mailpit. Así basta una cuenta `CLIENTE` sin segundo factor
+  (`E2E_CORREO_CLIENTE`) y su contraseña (`E2E_CUENTAS_CLAVE`).
+- El caso de *refresh* pide y reenvía un código de cambio de segundo factor:
+  contra Render envía dos correos reales a `E2E_CORREO_CLIENTE`, así que esa
+  cuenta debe tener un buzón que controle el equipo.
 - El OTP del caso de administración consume cuota (`DEMASIADAS_SOLICITUDES`):
   no apilar ejecuciones ni reintentos alocados contra la misma cuenta.
 - El caso de *refresh* adelanta el reloj del navegador (`page.clock`); no
