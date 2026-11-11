@@ -85,7 +85,9 @@ test('ruta de administración con sesión de CLIENTE queda bloqueada sin pedir d
 
   const consultasDeUsuarios: string[] = []
   page.on('request', (solicitud) => {
-    if (solicitud.url().includes('/api/v1/usuarios')) consultasDeUsuarios.push(solicitud.url())
+    // Solo el listado administrativo (GET /usuarios, con o sin filtros). «Mi cuenta»
+    // pide /usuarios/{id}/direcciones del propio titular y puede llegar tarde.
+    if (new URL(solicitud.url()).pathname === '/api/v1/usuarios') consultasDeUsuarios.push(solicitud.url())
   })
 
   await navegarEnSpa(page, '/admin/usuarios')
