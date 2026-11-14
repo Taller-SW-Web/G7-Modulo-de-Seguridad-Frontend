@@ -1,8 +1,11 @@
 // Instancia única del cliente y endpoints del contrato que consume la SPA en H3.
 import { crearAlmacenSesion } from './almacenSesion'
+import { FORMATO_ACCESO } from './formatoAcceso'
 import { crearClienteHttp, type ClienteHttp } from './http'
 import type { CanalOrigen } from './retornoCanal'
 import type {
+  ClienteTecnico,
+  ClienteTecnicoConSecreto,
   CodigoRol,
   CambioMfaEnviado,
   CuentaRegistrada,
@@ -14,6 +17,7 @@ import type {
   PaginaActividad,
   PaginaUsuarios,
   PoliticaPassword,
+  ScopeCatalogo,
   RegistroCliente,
   SesionIniciada,
   Usuario,
@@ -58,7 +62,7 @@ export function crearApi(cliente: ClienteHttp) {
     login: (correo: string, contrasena: string) =>
       cliente.request<SesionIniciada | DesafioMfa>('/auth/login', {
         method: 'POST',
-        body: { correo, contrasena },
+        body: { correo, contrasena, formatoAcceso: FORMATO_ACCESO },
         autenticada: false,
       }),
     logout: (refreshToken: string) =>
@@ -72,7 +76,7 @@ export function crearApi(cliente: ClienteHttp) {
     otpVerificar: (challengeToken: string, codigo: string) =>
       cliente.request<SesionIniciada>('/auth/otp/verificar', {
         method: 'POST',
-        body: { challengeToken, codigo },
+        body: { challengeToken, codigo, formatoAcceso: FORMATO_ACCESO },
         autenticada: false,
       }),
     registrar: (datos: RegistroCliente) =>
@@ -97,6 +101,11 @@ export function crearApi(cliente: ClienteHttp) {
       cliente.request<PaginaActividad>(`/auth/me/actividad?pagina=${pagina}&tamano=20`, { signal }),
     actualizarPerfilPropio: (id: string, cambios: { nombres?: string; apellidos?: string; celular?: string }) =>
       cliente.request<Usuario>(`/usuarios/${encodeURIComponent(id)}/atributos`, { method: 'PATCH', body: cambios }),
+    // FEAT-04-T6: edición administrativa (atributos.editar). null deja el dato sin registrar.
+    actualizarAtributosVendedor: (
+      id: string,
+      cambios: { codigoVendedor?: string | null; tienda?: string | null; fechaIngreso?: string | null },
+    ) => cliente.request<Usuario>(`/usuarios/${encodeURIComponent(id)}/atributos`, { method: 'PATCH', body: cambios }),
     solicitarCambioCorreo: (id: string, nuevoCorreo: string, contrasenaActual: string) =>
       cliente.request<void>(`/usuarios/${encodeURIComponent(id)}/correo`, {
         method: 'POST',
@@ -121,6 +130,32 @@ export function crearApi(cliente: ClienteHttp) {
       cliente.request<Usuario>(`/usuarios/${encodeURIComponent(id)}`, { signal }),
     asignarRol: (id: string, rol: CodigoRol) =>
       cliente.request<Usuario>(`/usuarios/${encodeURIComponent(id)}/roles`, { method: 'POST', body: { rol } }),
+    // FEAT-14 / SPEC-19 (v2). Alta y rotación entregan un secreto: no se repiten solas ante un 401.
+    listarClientesTecnicos: (signal?: AbortSignal) =>
+      cliente.request<ClienteTecnico[]>('/clientes-servicio', { version: 'v2', signal }),
+    catalogoScopes: (signal?: AbortSignal) =>
+      cliente.request<ScopeCatalogo[]>('/scopes', { version: 'v2', signal }),
+    crearClienteTecnico: (clientId: string, nombre: string, scopes: string[]) =>
+      cliente.request<ClienteTecnicoConSecreto>('/clientes-servicio', {
+        method: 'POST', version: 'v2', body: { clientId, nombre, scopes },
+        renovarAntesDeEnviar: true, renovarAnteTokenInvalido: false,
+      }),
+    rotarSecretoClienteTecnico: (clientId: string) =>
+      cliente.request<ClienteTecnicoConSecreto>(`/clientes-servicio/${encodeURIComponent(clientId)}/secreto`, {
+        method: 'POST', version: 'v2', renovarAntesDeEnviar: true, renovarAnteTokenInvalido: false,
+      }),
+    cambiarEstadoClienteTecnico: (clientId: string, activo: boolean) =>
+      cliente.request<void>(`/clientes-servicio/${encodeURIComponent(clientId)}/${activo ? 'reactivar' : 'desactivar'}`, {
+        method: 'POST', version: 'v2',
+      }),
+    concederScope: (clientId: string, scope: string) =>
+      cliente.request<void>(`/clientes-servicio/${encodeURIComponent(clientId)}/scopes`, {
+        method: 'POST', version: 'v2', body: { scope },
+      }),
+    revocarScope: (clientId: string, scope: string) =>
+      cliente.request<void>(`/clientes-servicio/${encodeURIComponent(clientId)}/scopes/${encodeURIComponent(scope)}`, {
+        method: 'DELETE', version: 'v2',
+      }),
     revocarRol: (id: string, rol: CodigoRol) =>
       cliente.request<void>(`/usuarios/${encodeURIComponent(id)}/roles/${encodeURIComponent(rol)}`, {
         method: 'DELETE',

@@ -7,7 +7,7 @@ import { Navigate, useLocation, useNavigate } from 'react-router'
 import type { Api } from '../../shared/api'
 import { desafioActual, descartarDesafio } from '../../shared/desafio'
 import { ApiError, mensajeDeError } from '../../shared/errores'
-import { leerClaims } from '../../shared/jwt'
+import { permisosDe } from '../../shared/almacenSesion'
 import { destinoPorDefecto, volverSeguro } from '../../shared/navegacion'
 import { useSesion } from '../../shared/sesion'
 
@@ -96,7 +96,7 @@ export function OtpPage({ api }: { api: Api }) {
       descartarDesafio()
       aceptarSesion(sesion)
       const volver = volverSeguro(new URLSearchParams(search).get('volver'))
-      navegar(volver ?? destinoPorDefecto(leerClaims(sesion.accessToken).permisos), { replace: true })
+      navegar(volver ?? destinoPorDefecto(permisosDe(sesion)), { replace: true })
     } catch (e) {
       setCodigo('')
       if (e instanceof ApiError) {

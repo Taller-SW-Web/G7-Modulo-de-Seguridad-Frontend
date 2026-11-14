@@ -90,7 +90,7 @@ describe('cliente HTTP', () => {
     const fetchSimulado = vi.fn(async (url: string, init: RequestInit) => {
       if (url.endsWith('/auth/refresh')) {
         refrescos++
-        expect(JSON.parse(init.body as string)).toEqual({ refreshToken: 'refresh-vieja' })
+        expect(JSON.parse(init.body as string)).toEqual({ refreshToken: 'refresh-vieja', formatoAcceso: 'CIFRADO' })
         await new Promise((r) => setTimeout(r, 5))
         return json(200, nueva)
       }
@@ -104,7 +104,7 @@ describe('cliente HTTP', () => {
     expect(a).toEqual({ url: `${BASE}/a` })
     expect(b).toEqual({ url: `${BASE}/b` })
     expect(refrescos).toBe(1)
-    expect(almacen.tokens()).toEqual({ accessToken: nueva.accessToken, refreshToken: nueva.refreshToken })
+    expect(almacen.tokens()).toMatchObject({ accessToken: nueva.accessToken, refreshToken: nueva.refreshToken })
     expect(fetchSimulado).toHaveBeenCalledTimes(5) // 2 originales + 1 refresh + 2 repeticiones
   })
 

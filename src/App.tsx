@@ -2,7 +2,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import type { Api } from './shared/api'
 import { Marco } from './shared/Marco'
-import { PERMISO_VER_USUARIOS } from './shared/navegacion'
+import { PERMISO_GESTIONAR_INTEGRACION, PERMISO_VER_USUARIOS } from './shared/navegacion'
 import { RutaAdmin, RutaAutenticada, RutaPublica } from './shared/rutas'
 import { LoginPage } from './pantallas/login/LoginPage'
 import { OtpPage } from './pantallas/otp/OtpPage'
@@ -12,6 +12,7 @@ import { CambiarContrasenaPage } from './pantallas/cambio-contrasena/CambiarCont
 import { ActividadPage } from './pantallas/actividad/ActividadPage'
 import { AdminListadoPage } from './pantallas/admin-listado/AdminListadoPage'
 import { AdminDetallePage } from './pantallas/admin-detalle/AdminDetallePage'
+import { ClientesTecnicosPage } from './pantallas/admin-clientes-tecnicos/ClientesTecnicosPage'
 import { RecuperacionPage } from './pantallas/recuperacion/RecuperacionPage'
 import { SegundoFactorPage } from './pantallas/segundo-factor/SegundoFactorPage'
 import { RegistroPage } from './pantallas/registro/RegistroPage'
@@ -75,6 +76,14 @@ export function Rutas({ api }: { api: Api }) {
           element={
             <RutaAdmin permiso={PERMISO_VER_USUARIOS}>
               <AdminDetallePage api={api} />
+            </RutaAdmin>
+          }
+        />
+        <Route
+          path="/admin/clientes-tecnicos"
+          element={
+            <RutaAdmin permiso={PERMISO_GESTIONAR_INTEGRACION}>
+              <ClientesTecnicosPage api={api} />
             </RutaAdmin>
           }
         />
