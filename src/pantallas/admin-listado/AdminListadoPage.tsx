@@ -1,10 +1,12 @@
-// FRONT-07 — listado administrativo (alcance H3: consulta y filtros, sin altas ni acciones de estado).
+// FRONT-07 — listado administrativo: consulta y filtros; con usuario.crear, acceso al alta de FRONT-11 (FEAT-13).
 import { Alert, Anchor, Badge, Button, Container, Group, Pagination, Paper, Skeleton, Stack, Table, Text, Title } from '@mantine/core'
 import { Link } from 'react-router'
 import type { Api } from '../../shared/api'
 import { ApiError, mensajeDeError } from '../../shared/errores'
 import { COLOR_ESTADO, ETIQUETA_ESTADO, ETIQUETA_ROL, textoEstado } from '../../shared/etiquetas'
 import type { FiltrosUsuarios as Filtros } from '../../shared/api'
+import { PERMISO_CREAR_USUARIOS } from '../../shared/navegacion'
+import { useSesion } from '../../shared/sesion'
 import { FiltrosUsuarios } from './FiltrosUsuarios'
 import { useListadoUsuarios } from './useListadoUsuarios'
 
@@ -20,13 +22,21 @@ function resumenFiltros(f: Filtros): string {
 export function AdminListadoPage({ api }: { api: Api }) {
   const { filtros, carga, cambiar, quitarFiltros, reintentar } = useListadoUsuarios(api)
   const hayFiltros = Boolean(filtros.estado || filtros.rol || filtros.correo)
+  const { tienePermiso } = useSesion()
 
   return (
     <Container size="xl" py="md">
       <Stack gap="md">
-        <Title order={1} size="h2">
-          Usuarios
-        </Title>
+        <Group justify="space-between" wrap="wrap">
+          <Title order={1} size="h2">
+            Usuarios
+          </Title>
+          {tienePermiso(PERMISO_CREAR_USUARIOS) && (
+            <Button component={Link} to="/admin/usuarios/nuevo">
+              Nueva cuenta
+            </Button>
+          )}
+        </Group>
         <Paper withBorder p="md" radius="md">
           <FiltrosUsuarios filtros={filtros} onCambiar={cambiar} />
         </Paper>
