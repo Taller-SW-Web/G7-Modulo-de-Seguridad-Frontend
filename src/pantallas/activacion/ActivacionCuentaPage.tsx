@@ -6,15 +6,20 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { MedidorPassword } from '../../componentes/MedidorPassword'
 import type { Api } from '../../shared/api'
+import { EnlaceTerminos } from '../terminos/EnlaceTerminos'
+import { enmascararCorreo } from '../../shared/enmascararCorreo'
 import { ApiError, mensajeDeError } from '../../shared/errores'
+import { useSesion } from '../../shared/sesion'
 import type { PoliticaPassword } from '../../shared/tipos'
 
 export const TEXTOS_ACTIVACION = {
   activada: 'Tu cuenta quedó activa. Ya puedes iniciar sesión.',
-  vencido: 'Este enlace venció: los enlaces de activación duran 72 horas. Pide al administrador de la plataforma que te envíe uno nuevo.',
+  // El alta con el mismo correo responde 409 mientras el PO decide si reenvía el enlace (revisión de Luis en #28).
+  vencido: 'Este enlace venció: los enlaces de activación duran 72 horas. Contacta al administrador de la plataforma para revisar tu activación.',
   yaUsado: 'Este enlace ya se usó. Si ya activaste tu cuenta, inicia sesión.',
   incompleto: 'El enlace está incompleto. Ábrelo de nuevo desde el correo que recibiste.',
   terminos: 'Debes aceptar los términos y el tratamiento de tus datos personales para activar tu cuenta.',
+  otraSesion: 'En este navegador hay otra sesión abierta. Ciérrala para entrar con la cuenta que acabas de activar.',
 } as const
 
 type Final = 'activada' | 'vencido' | 'ya-usado'
@@ -22,6 +27,7 @@ type Final = 'activada' | 'vencido' | 'ya-usado'
 export function ActivacionCuentaPage({ api }: { api: Api }) {
   const location = useLocation()
   const navegar = useNavigate()
+  const { estado: sesion, cerrarSesion } = useSesion()
   const [token] = useState(() => new URLSearchParams(location.search).get('token')?.trim() ?? '')
   const [politica, setPolitica] = useState<PoliticaPassword | null>(null)
   const [contrasena, setContrasena] = useState('')
@@ -78,7 +84,11 @@ export function ActivacionCuentaPage({ api }: { api: Api }) {
     }
   }
 
-  const irAlLogin = () => navegar('/login', { replace: true, state: { aviso: TEXTOS_ACTIVACION.activada } })
+  // Con otra sesión abierta, el login llevaría a esa cuenta (RutaPublica): primero se cierra (revisión de Luis en #28).
+  const irAlLogin = async () => {
+    if (sesion.tipo === 'activa') await cerrarSesion()
+    navegar('/login', { replace: true, state: { aviso: TEXTOS_ACTIVACION.activada } })
+  }
 
   let contenido
   if (!token) {
@@ -87,7 +97,14 @@ export function ActivacionCuentaPage({ api }: { api: Api }) {
     contenido = (
       <Stack gap="md">
         <Alert color="green" variant="light" role="status">{TEXTOS_ACTIVACION.activada}</Alert>
-        <Button type="button" onClick={irAlLogin}>Iniciar sesión</Button>
+        {sesion.tipo === 'activa' && (
+          <Alert color="yellow" variant="light" role="note">
+            {TEXTOS_ACTIVACION.otraSesion} Ahora está abierta la de {enmascararCorreo(sesion.usuario.correo)}.
+          </Alert>
+        )}
+        <Button type="button" onClick={() => { void irAlLogin() }}>
+          {sesion.tipo === 'activa' ? 'Cerrar esa sesión e iniciar sesión' : 'Iniciar sesión'}
+        </Button>
       </Stack>
     )
   } else if (final) {
@@ -124,7 +141,7 @@ export function ActivacionCuentaPage({ api }: { api: Api }) {
             visibilityToggleButtonProps={{ 'aria-label': 'Mostrar confirmación' }}
           />
           <Checkbox
-            label="Acepto los términos y condiciones y el tratamiento de mis datos personales conforme a la Ley N.º 29733."
+            label={<>Acepto los <EnlaceTerminos /> y el tratamiento de mis datos personales conforme a la Ley N.º 29733.</>}
             checked={acepta}
             onChange={(e) => { setAcepta(e.currentTarget.checked); setErrorTerminos(null) }}
             error={errorTerminos}

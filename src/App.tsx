@@ -19,6 +19,7 @@ import { RecuperacionPage } from './pantallas/recuperacion/RecuperacionPage'
 import { SegundoFactorPage } from './pantallas/segundo-factor/SegundoFactorPage'
 import { RegistroPage } from './pantallas/registro/RegistroPage'
 import { VerificacionCorreoPage } from './pantallas/verificacion/VerificacionCorreoPage'
+import { TerminosPage } from './pantallas/terminos/TerminosPage'
 
 export function Rutas({ api }: { api: Api }) {
   return (
@@ -48,6 +49,7 @@ export function Rutas({ api }: { api: Api }) {
       <Route path="/desbloquear" element={<DesbloqueoPage api={api} />} />
       {/* Sin RutaPublica: el enlace es de otra persona y debe poder abrirse aunque haya una sesión. */}
       <Route path="/activar-cuenta" element={<ActivacionCuentaPage api={api} />} />
+      <Route path="/terminos" element={<TerminosPage />} />
       <Route
         path="/otp"
         element={

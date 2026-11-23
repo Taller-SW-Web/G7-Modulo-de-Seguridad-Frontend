@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { MedidorPassword } from '../../componentes/MedidorPassword'
 import type { Api } from '../../shared/api'
+import { EnlaceTerminos } from '../terminos/EnlaceTerminos'
 import { ApiError, erroresPorCampo, mensajeDeError } from '../../shared/errores'
 import type { PoliticaPassword } from '../../shared/tipos'
 import {
@@ -211,7 +212,7 @@ export function RegistroPage({ api }: { api: Api }) {
             />
             <Checkbox
               ref={registrarCampo('aceptaTerminos')}
-              label="Acepto los términos y condiciones y el tratamiento de mis datos personales conforme a la Ley N.º 29733."
+              label={<>Acepto los <EnlaceTerminos /> y el tratamiento de mis datos personales conforme a la Ley N.º 29733.</>}
               checked={valores.aceptaTerminos}
               onChange={(e) => cambiar('aceptaTerminos', e.currentTarget.checked)}
               onBlur={() => salir('aceptaTerminos')} error={errores.aceptaTerminos}
