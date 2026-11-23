@@ -1,6 +1,7 @@
 // Destino por defecto (ENTORNO-Y-REACT §3) y `volver` seguro (FRONT-00 §1.4).
 
 export const PERMISO_VER_USUARIOS = 'usuario.ver'
+export const PERMISO_CREAR_USUARIOS = 'usuario.crear'
 export const PERMISO_ASIGNAR_ROL = 'rol.asignar'
 export const PERMISO_EDITAR_ATRIBUTOS = 'atributos.editar'
 export const PERMISO_GESTIONAR_INTEGRACION = 'integracion.gestionar'

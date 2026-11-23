@@ -2,7 +2,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import type { Api } from './shared/api'
 import { Marco } from './shared/Marco'
-import { PERMISO_GESTIONAR_INTEGRACION, PERMISO_VER_USUARIOS } from './shared/navegacion'
+import { PERMISO_CREAR_USUARIOS, PERMISO_GESTIONAR_INTEGRACION, PERMISO_VER_USUARIOS } from './shared/navegacion'
 import { RutaAdmin, RutaAutenticada, RutaPublica } from './shared/rutas'
 import { LoginPage } from './pantallas/login/LoginPage'
 import { OtpPage } from './pantallas/otp/OtpPage'
@@ -12,11 +12,14 @@ import { CambiarContrasenaPage } from './pantallas/cambio-contrasena/CambiarCont
 import { ActividadPage } from './pantallas/actividad/ActividadPage'
 import { AdminListadoPage } from './pantallas/admin-listado/AdminListadoPage'
 import { AdminDetallePage } from './pantallas/admin-detalle/AdminDetallePage'
+import { AdminAltaPage } from './pantallas/admin-alta/AdminAltaPage'
+import { ActivacionCuentaPage } from './pantallas/activacion/ActivacionCuentaPage'
 import { ClientesTecnicosPage } from './pantallas/admin-clientes-tecnicos/ClientesTecnicosPage'
 import { RecuperacionPage } from './pantallas/recuperacion/RecuperacionPage'
 import { SegundoFactorPage } from './pantallas/segundo-factor/SegundoFactorPage'
 import { RegistroPage } from './pantallas/registro/RegistroPage'
 import { VerificacionCorreoPage } from './pantallas/verificacion/VerificacionCorreoPage'
+import { TerminosPage } from './pantallas/terminos/TerminosPage'
 
 export function Rutas({ api }: { api: Api }) {
   return (
@@ -44,6 +47,9 @@ export function Rutas({ api }: { api: Api }) {
         element={<RecuperacionPage api={api} />}
       />
       <Route path="/desbloquear" element={<DesbloqueoPage api={api} />} />
+      {/* Sin RutaPublica: el enlace es de otra persona y debe poder abrirse aunque haya una sesión. */}
+      <Route path="/activar-cuenta" element={<ActivacionCuentaPage api={api} />} />
+      <Route path="/terminos" element={<TerminosPage />} />
       <Route
         path="/otp"
         element={
@@ -68,6 +74,14 @@ export function Rutas({ api }: { api: Api }) {
           element={
             <RutaAdmin permiso={PERMISO_VER_USUARIOS}>
               <AdminListadoPage api={api} />
+            </RutaAdmin>
+          }
+        />
+        <Route
+          path="/admin/usuarios/nuevo"
+          element={
+            <RutaAdmin permiso={PERMISO_CREAR_USUARIOS}>
+              <AdminAltaPage api={api} />
             </RutaAdmin>
           }
         />

@@ -128,6 +128,17 @@ export function crearApi(cliente: ClienteHttp) {
     },
     obtenerUsuario: (id: string, signal?: AbortSignal) =>
       cliente.request<Usuario>(`/usuarios/${encodeURIComponent(id)}`, { signal }),
+    // FEAT-13 (SPEC-03, OpenAPI v2 crearUsuarioV2): sin contraseña; «sin rol» omite el campo. No se repite
+    // sola ante un 401 porque crearía la cuenta dos veces.
+    crearUsuario: (datos: { correo: string; nombres: string; apellidos: string; rol?: CodigoRol }) =>
+      cliente.request<Usuario>('/usuarios', {
+        method: 'POST', version: 'v2', body: datos, renovarAntesDeEnviar: true, renovarAnteTokenInvalido: false,
+      }),
+    // FEAT-13 (SPEC-03 RF-03.5): público; el titular define su contraseña y acepta los términos.
+    activarCuenta: (token: string, contrasena: string) =>
+      cliente.request<void>('/auth/activar-cuenta', {
+        method: 'POST', body: { token, contrasena, aceptaTerminos: true }, autenticada: false,
+      }),
     asignarRol: (id: string, rol: CodigoRol) =>
       cliente.request<Usuario>(`/usuarios/${encodeURIComponent(id)}/roles`, { method: 'POST', body: { rol } }),
     // FEAT-14 / SPEC-19 (v2). Alta y rotación entregan un secreto: no se repiten solas ante un 401.
