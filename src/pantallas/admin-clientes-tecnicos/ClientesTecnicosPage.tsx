@@ -11,7 +11,7 @@ import { ApiError, erroresPorCampo, mensajeDeError, RedError } from '../../share
 import type { ClienteTecnico, ScopeCatalogo } from '../../shared/tipos'
 
 const CLIENT_ID = /^[a-z0-9][a-z0-9-]{2,49}$/
-const CODIGO_SCOPE = /^[a-z_]+(:[a-z_]+)+$/
+const CODIGO_SCOPE = /^[a-z_]+(-[a-z_]+)*(:[a-z_]+(-[a-z_]+)*)+$/
 const AUDIENCIAS = ['api-seguridad', 'api-ventas', 'api-postventa', 'api-productos', 'api-despacho']
 export const TEXTOS = {
   vacio: 'Todavía no hay clientes técnicos.',
@@ -232,8 +232,12 @@ function AltaScope({ api, onCerrar, onCreado }: { api: Api; onCerrar: () => void
 
   async function guardar() {
     if (enVuelo.current) return
-    if (!CODIGO_SCOPE.test(codigo) || codigo.length > 50 || !audiencia || !descripcion.trim()) {
-      setError('Completa la audiencia y la descripción. Usa un código como inventario:incidencias:leer.')
+    if (!CODIGO_SCOPE.test(codigo) || codigo.length > 50) {
+      setError('Usa un código de hasta 50 caracteres, como ventas:pedidos:buscar-documento.')
+      return
+    }
+    if (!audiencia || !descripcion.trim()) {
+      setError('Completa la audiencia y la descripción.')
       return
     }
     enVuelo.current = true
