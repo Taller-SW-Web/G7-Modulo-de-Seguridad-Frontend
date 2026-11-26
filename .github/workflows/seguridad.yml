@@ -1,0 +1,69 @@
+name: Seguridad Frontend
+
+on:
+  pull_request:
+    branches: [develop]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+concurrency:
+  group: seguridad-frontend-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependency-review:
+    name: Dependencias / revisión del PR
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Obtener el código
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Revisar dependencias añadidas o actualizadas
+        uses: actions/dependency-review-action@v5
+        with:
+          warn-only: true
+          license-check: false
+          show-patched-versions: true
+          show-openssf-scorecard: false
+
+  codeql-typescript:
+    name: CodeQL / TypeScript
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Obtener el código
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Inicializar CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+
+      - name: Analizar TypeScript
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:javascript-typescript
+          output: ${{ runner.temp }}/codeql-results
+
+      - name: Conservar el reporte SARIF
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: codeql-frontend-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/codeql-results
+          if-no-files-found: warn
+          retention-days: 7
