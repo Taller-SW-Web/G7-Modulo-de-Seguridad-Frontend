@@ -146,6 +146,11 @@ export function crearApi(cliente: ClienteHttp) {
       cliente.request<ClienteTecnico[]>('/clientes-servicio', { version: 'v2', signal }),
     catalogoScopes: (signal?: AbortSignal) =>
       cliente.request<ScopeCatalogo[]>('/scopes', { version: 'v2', signal }),
+    crearScopeCatalogo: (scope: ScopeCatalogo) =>
+      cliente.request<ScopeCatalogo>('/scopes', {
+        method: 'POST', version: 'v2', body: scope,
+        renovarAntesDeEnviar: true, renovarAnteTokenInvalido: false,
+      }),
     crearClienteTecnico: (clientId: string, nombre: string, scopes: string[]) =>
       cliente.request<ClienteTecnicoConSecreto>('/clientes-servicio', {
         method: 'POST', version: 'v2', body: { clientId, nombre, scopes },

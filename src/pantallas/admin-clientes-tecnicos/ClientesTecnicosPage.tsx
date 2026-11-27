@@ -11,6 +11,8 @@ import { ApiError, erroresPorCampo, mensajeDeError, RedError } from '../../share
 import type { ClienteTecnico, ScopeCatalogo } from '../../shared/tipos'
 
 const CLIENT_ID = /^[a-z0-9][a-z0-9-]{2,49}$/
+const CODIGO_SCOPE = /^[a-z_]+(-[a-z_]+)*(:[a-z_]+(-[a-z_]+)*)+$/
+const AUDIENCIAS = ['api-seguridad', 'api-ventas', 'api-postventa', 'api-productos', 'api-despacho']
 export const TEXTOS = {
   vacio: 'Todavía no hay clientes técnicos.',
   errorCarga: 'No pudimos cargar los clientes técnicos.',
@@ -47,6 +49,7 @@ export function ClientesTecnicosPage({ api }: { api: Api }) {
   const [catalogo, setCatalogo] = useState<ScopeCatalogo[] | null>(null)
   const [aviso, setAviso] = useState('')
   const [alta, setAlta] = useState(false)
+  const [altaScope, setAltaScope] = useState(false)
   const [gestion, setGestion] = useState<ClienteTecnico | null>(null)
   const [confirmacion, setConfirmacion] = useState<Confirmacion | null>(null)
   const [secreto, setSecreto] = useState<{ clientId: string; valor: string } | null>(null)
@@ -82,10 +85,20 @@ export function ClientesTecnicosPage({ api }: { api: Api }) {
       <Stack gap="md">
         <Group justify="space-between">
           <Title order={1} size="h2">Clientes técnicos</Title>
-          <Button onClick={() => { setAviso(''); setAlta(true); void pedirCatalogo() }}>Nuevo cliente</Button>
+          <Group>
+            <Button variant="light" onClick={() => { setAviso(''); setAltaScope(true) }}>Crear scope</Button>
+            <Button onClick={() => { setAviso(''); setAlta(true); void pedirCatalogo() }}>Nuevo cliente</Button>
+          </Group>
         </Group>
         <Text size="sm" c="dimmed">Módulos que piden tokens de servicio a Seguridad, con los scopes que tienen concedidos.</Text>
         {aviso && <Alert role="status" withCloseButton onClose={() => setAviso('')}>{aviso}</Alert>}
+
+        {altaScope && <AltaScope api={api} onCerrar={() => setAltaScope(false)}
+          onCreado={() => {
+            setCatalogo(null)
+            setAltaScope(false)
+            setAviso('Scope registrado. Ya puedes concederlo a un cliente técnico.')
+          }} />}
 
         {carga.tipo === 'cargando' && (
           <Stack gap="xs" aria-busy="true" aria-label="Cargando clientes técnicos">
@@ -205,6 +218,61 @@ function FormularioAlta({ api, abierto, catalogo, onCerrar, onCreado }: {
           <Button variant="default" disabled={ocupada} onClick={onCerrar}>Cancelar</Button>
         </Group>
       </Stack>
+    </Modal>
+  )
+}
+
+function AltaScope({ api, onCerrar, onCreado }: { api: Api; onCerrar: () => void; onCreado: () => void }) {
+  const [codigo, setCodigo] = useState('')
+  const [audiencia, setAudiencia] = useState<string | null>(null)
+  const [descripcion, setDescripcion] = useState('')
+  const [error, setError] = useState('')
+  const [ocupada, setOcupada] = useState(false)
+  const enVuelo = useRef(false)
+
+  async function guardar() {
+    if (enVuelo.current) return
+    if (!CODIGO_SCOPE.test(codigo) || codigo.length > 50) {
+      setError('Usa un código de hasta 50 caracteres, como ventas:pedidos:buscar-documento.')
+      return
+    }
+    if (!audiencia || !descripcion.trim()) {
+      setError('Completa la audiencia y la descripción.')
+      return
+    }
+    enVuelo.current = true
+    setOcupada(true)
+    setError('')
+    try {
+      await api.crearScopeCatalogo({ codigo, audiencia, descripcion: descripcion.trim() })
+      onCreado()
+    } catch (e) {
+      setError(e instanceof ApiError && e.code === 'SCOPE_CATALOGO_EXISTENTE'
+        ? 'Ya existe un scope con ese código.' : mensajeCambio(e))
+    } finally {
+      enVuelo.current = false
+      setOcupada(false)
+    }
+  }
+
+  return (
+    <Modal opened onClose={() => { if (!enVuelo.current) onCerrar() }} title="Crear scope">
+      <form onSubmit={(e) => { e.preventDefault(); void guardar() }}>
+        <Stack>
+          <Text size="sm">Registra un scope aprobado por el equipo dueño de la API.</Text>
+          <TextInput label="Código" value={codigo} onChange={(e) => setCodigo(e.currentTarget.value)}
+            required maxLength={50} disabled={ocupada} />
+          <Select label="Audiencia" data={AUDIENCIAS} value={audiencia}
+            onChange={setAudiencia} withAsterisk disabled={ocupada} />
+          <TextInput label="Descripción" value={descripcion} onChange={(e) => setDescripcion(e.currentTarget.value)}
+            required maxLength={255} disabled={ocupada} />
+          {error && <Alert color="red" role="alert">{error}</Alert>}
+          <Group justify="flex-end">
+            <Button variant="default" onClick={onCerrar} disabled={ocupada}>Cancelar</Button>
+            <Button type="submit" loading={ocupada}>Guardar</Button>
+          </Group>
+        </Stack>
+      </form>
     </Modal>
   )
 }
