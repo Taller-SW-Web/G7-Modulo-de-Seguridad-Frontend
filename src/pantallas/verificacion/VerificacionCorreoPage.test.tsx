@@ -130,6 +130,9 @@ describe('FEAT-01-T5 FRONT-03 verificación de correo', () => {
     const boton = await screen.findByRole('link', { name: 'Iniciar sesión' })
     expect(boton.getAttribute('href')).toBe(G1)
     expect(boton.getAttribute('rel')).toContain('noreferrer')
+    const volver = screen.getByRole('link', { name: 'Volver a iniciar sesión' })
+    expect(volver.getAttribute('href')).toBe(G1)
+    expect(volver.getAttribute('rel')).toContain('noreferrer')
     expect(window.location.search).toBe('')
   })
 
