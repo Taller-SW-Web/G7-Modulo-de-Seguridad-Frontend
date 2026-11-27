@@ -160,7 +160,11 @@ export function VerificacionCorreoPage({ api }: { api: Api }) {
 
           {estado === 'reenvio' && <Reenvio api={api} correoInicial="" />}
 
-          <Anchor component={Link} to="/login" size="sm">Volver a iniciar sesión</Anchor>
+          {destino ? (
+            <Anchor href={destino} rel="noreferrer" size="sm">Volver a iniciar sesión</Anchor>
+          ) : (
+            <Anchor component={Link} to="/login" size="sm">Volver a iniciar sesión</Anchor>
+          )}
         </Stack>
       </Paper>
     </Center>
