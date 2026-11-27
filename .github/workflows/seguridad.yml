@@ -54,7 +54,7 @@ jobs:
           "$RUNNER_TEMP/gitleaks/gitleaks" git \
             --no-banner \
             --redact=100 \
-            --exit-code=0 \
+            --exit-code=1 \
             --report-format=sarif \
             --report-path="$GITHUB_WORKSPACE/gitleaks-results.sarif" \
             --log-opts="$BASE_SHA..$HEAD_SHA" \

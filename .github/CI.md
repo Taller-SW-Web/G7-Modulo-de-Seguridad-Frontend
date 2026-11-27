@@ -36,3 +36,18 @@ resuelve el autor y el CI vuelve a ejecutarse con la rama actualizada.
 npm ci
 npm run lint && npm run typecheck && npm run build
 ```
+
+## Política de seguridad del pipeline (FEAT-15-T4)
+
+En los PR a `develop`, los checks de destino y build/pruebas son los gates
+obligatorios del frontend. Gitleaks bloquea si detecta un secreto en el historial
+del PR. Para que GitHub impida el merge, un administrador debe marcar
+`Secretos / historial del PR` como check requerido en la protección de
+`develop`; el archivo no cambia por sí solo esa configuración. CodeQL y
+Dependency Review publican resultados para revisión, pero no bloquean
+automáticamente en esta configuración. Los hallazgos se revisan y se
+documenta su decisión antes de integrar cambios relevantes; un check verde solo
+indica que el análisis terminó sin error, no que su reporte esté vacío.
+
+La evidencia consolidada de las ejecuciones y decisiones está en el repositorio
+de especificaciones, `docs/evidencia/h5/FEAT-15.md`.
