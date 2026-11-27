@@ -17,6 +17,58 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  secret-history:
+    name: Secretos / historial del PR
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Obtener el historial completo del PR
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Descargar y verificar Gitleaks 8.29.1
+        run: |
+          set -euo pipefail
+          version=8.29.1
+          archive="gitleaks_${version}_linux_x64.tar.gz"
+          release="https://github.com/gitleaks/gitleaks/releases/download/v${version}"
+          mkdir -p "$RUNNER_TEMP/gitleaks"
+          curl --fail --silent --show-error --location "$release/$archive" -o "$RUNNER_TEMP/$archive"
+          curl --fail --silent --show-error --location "$release/gitleaks_${version}_checksums.txt" -o "$RUNNER_TEMP/checksums.txt"
+          checksum=$(awk -v file="$archive" '$2 == file || (substr($2, 1, 1) == "*" && substr($2, 2) == file) { print $1 }' "$RUNNER_TEMP/checksums.txt")
+          test -n "$checksum"
+          echo "$checksum  $RUNNER_TEMP/$archive" | sha256sum --check --status
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP/gitleaks" gitleaks
+
+      - name: Detectar secretos entre la base y la cabeza del PR
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/gitleaks/gitleaks" git \
+            --no-banner \
+            --redact=100 \
+            --exit-code=0 \
+            --report-format=sarif \
+            --report-path="$GITHUB_WORKSPACE/gitleaks-results.sarif" \
+            --log-opts="$BASE_SHA..$HEAD_SHA" \
+            "$GITHUB_WORKSPACE"
+
+      - name: Conservar reporte de secretos
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: gitleaks-frontend-${{ github.run_id }}-${{ github.run_attempt }}
+          path: gitleaks-results.sarif
+          if-no-files-found: warn
+          retention-days: 7
+
   dependency-review:
     name: Dependencias / revisión del PR
     if: github.event_name == 'pull_request'
